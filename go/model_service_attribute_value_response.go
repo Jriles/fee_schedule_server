@@ -10,7 +10,6 @@
 package fee_schedule_server
 
 type ServiceAttributeValueResponse struct {
-
 	Id string `json:"id"`
 
 	ValueTitle string `json:"valueTitle"`

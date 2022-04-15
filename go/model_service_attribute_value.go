@@ -10,6 +10,5 @@
 package fee_schedule_server
 
 type ServiceAttributeValue struct {
-
 	AttributeValueId string `json:"attributeValueId"`
 }

@@ -15,17 +15,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CreateAttribute - 
+// CreateAttribute -
 func CreateAttribute(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// CreateAttributeValue - 
+// CreateAttributeValue -
 func CreateAttributeValue(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// CreateService - 
+// CreateService -
 func CreateService(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -35,17 +35,17 @@ func CreateServiceAttributeValue(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// DeleteAttribute - 
+// DeleteAttribute -
 func DeleteAttribute(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// DeleteAttributeValue - 
+// DeleteAttributeValue -
 func DeleteAttributeValue(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// DeleteService - 
+// DeleteService -
 func DeleteService(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -55,17 +55,17 @@ func DeleteServiceAttributeValue(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// GetAllAttributeValues - 
+// GetAllAttributeValues -
 func GetAllAttributeValues(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// GetAllAttributes - 
+// GetAllAttributes -
 func GetAllAttributes(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// GetAllServices - 
+// GetAllServices -
 func GetAllServices(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -75,7 +75,7 @@ func GetFee(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// GetService - 
+// GetService -
 func GetService(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -85,17 +85,17 @@ func GetServiceAttrVals(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// UpdateAttribute - 
+// UpdateAttribute -
 func UpdateAttribute(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// UpdateAttributeValue - 
+// UpdateAttributeValue -
 func UpdateAttributeValue(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-// UpdateService - 
+// UpdateService -
 func UpdateService(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }

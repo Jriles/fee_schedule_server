@@ -12,30 +12,40 @@ package main
 import (
 	"database/sql"
 	"log"
+	"os"
 
 	// WARNING!
 	// Change this to a fully-qualified import path
 	// once you place this file into your project.
 	// For example,
 	//
-	//sw "github.com/GIT_USER_ID/GIT_REPO_ID/go"
+	sw "github.com/Jriles/fee_schedule_server/go"
+	"github.com/gin-gonic/gin"
+
 	//
-	sw "./go"
+	_ "github.com/lib/pq"
 )
 
-const (
-	// TODO fill this in directly or through environment variable
-	// Build a DSN e.g. postgres://username:password@url.com:5432/dbName
-	DB_DSN = "postgres://jackriley:843134@url.com:5432/fee_schedule_api"
-)
+var db_conn = os.Getenv("FEE_SCHEDULE_SERVER_DB_CONN")
+
+// ApiMiddleware will add the db connection to the context
+func ApiMiddleware(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("databaseConn", db)
+		c.Next()
+	}
+}
 
 func main() {
 	log.Printf("Server started")
-	db, err := sql.Open("postgres", DB_DSN)
+	db, err := sql.Open("postgres", db_conn)
 	if err != nil {
 		log.Fatal("Failed to open a DB connection: ", err)
 	}
+
 	router := sw.NewRouter()
+
+	router.Use(ApiMiddleware(db))
 
 	log.Fatal(router.Run(":8080"))
 }

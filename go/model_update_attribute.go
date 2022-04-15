@@ -9,7 +9,6 @@
 
 package fee_schedule_server
 
-type UpdateAttribute struct {
-
+type UpdateAttributeStruct struct {
 	Title string `json:"title,omitempty"`
 }

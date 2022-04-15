@@ -10,7 +10,6 @@
 package fee_schedule_server
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -32,11 +31,9 @@ type Route struct {
 type Routes []Route
 
 // NewRouter returns a new router.
-func NewRouter(db *sql.DB) *gin.Engine {
+func NewRouter() *gin.Engine {
 	router := gin.Default()
 	for _, route := range routes {
-		route.HandlerFunc.Db = db
-
 		switch route.Method {
 		case http.MethodGet:
 			router.GET(route.Pattern, route.HandlerFunc)

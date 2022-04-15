@@ -9,7 +9,6 @@
 
 package fee_schedule_server
 
-type CreateService struct {
-
+type CreateServiceStruct struct {
 	Title string `json:"title"`
 }
