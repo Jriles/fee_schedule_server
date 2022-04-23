@@ -20,32 +20,23 @@ import (
 	// For example,
 	//
 	sw "github.com/Jriles/fee_schedule_server/go"
-	"github.com/gin-gonic/gin"
 
 	//
 	_ "github.com/lib/pq"
 )
 
-var db_conn = os.Getenv("FEE_SCHEDULE_SERVER_DB_CONN")
-
-// ApiMiddleware will add the db connection to the context
-func ApiMiddleware(db *sql.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Set("databaseConn", db)
-		c.Next()
-	}
-}
+var db_conn = ""
 
 func main() {
-	log.Printf("Server started")
+	db_conn = os.Getenv("FEE_SCHEDULE_SERVER_DB_CONN")
+	log.Print(os.Getenv("FEE_SCHEDULE_SERVER_DB_CONN"))
+	log.Printf("here")
 	db, err := sql.Open("postgres", db_conn)
 	if err != nil {
 		log.Fatal("Failed to open a DB connection: ", err)
 	}
 
-	router := sw.NewRouter()
-
-	router.Use(ApiMiddleware(db))
+	router := sw.NewRouter(db)
 
 	log.Fatal(router.Run(":8080"))
 }

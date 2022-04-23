@@ -1,0 +1,423 @@
+openapi: 3.0.0
+info:
+  title: CorpFees
+  description: API for the Corp Fees central.
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:3000/'
+paths:
+  /services:
+    post:
+      operationId: createService
+      requestBody:
+        description: 'This creates a service like Ammended and Restated articles, or Formation.'
+        required: true
+        content:
+          application/json:
+            schema:
+              title: CreateService
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                title: CreateServiceResponse
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+    get:
+      description: Get a list of all supported services
+      operationId: getAllServices
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - id
+                    - title
+                  properties:
+                    id:
+                      type: string
+                    title:
+                      type: string
+  '/services/{serviceId}/':
+    get:
+      operationId: getService
+      description: Get one service's details
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            title: ServiceId
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: ServiceResponse
+                $ref: '#/paths/~1services/get/responses/200/content/application~1json/schema/items'
+    patch:
+      operationId: updateService
+      description: Update Service values
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            title: ServiceId
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: UpdateService
+              type: object
+              properties:
+                title:
+                  type: string
+      responses:
+        '204':
+          description: Updated
+    delete:
+      operationId: deleteService
+      description: Delete a service.
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            title: ServiceId
+            type: string
+      responses:
+        '204':
+          description: Deleted
+  /attributes:
+    post:
+      operationId: createAttribute
+      description: Create a database-wide attribute. Think stock count or entity type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: Attribute
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+      responses:
+        '201':
+          description: Created
+    get:
+      operationId: getAllAttributes
+      description: 'Get all database wide attributes like stock count, jurisdiction and entity type.'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  title: AttributeResponse
+                  type: object
+                  required:
+                    - id
+                    - title
+                  properties:
+                    id:
+                      type: string
+                    title:
+                      type: string
+  '/attributes/{attributeId}':
+    patch:
+      operationId: updateAttribute
+      description: Update an attribute's name or other details. But not the attribute values.
+      parameters:
+        - in: path
+          name: attributeId
+          required: true
+          schema:
+            title: AttributeId
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: UpdateAttribute
+              type: object
+              properties:
+                title:
+                  type: string
+      responses:
+        '204':
+          description: Updated
+    delete:
+      operationId: deleteAttribute
+      description: Delete an attribute.
+      parameters:
+        - in: path
+          name: attributeId
+          required: true
+          schema:
+            title: AttributeId
+            type: string
+      responses:
+        '204':
+          description: Deleted
+  '/attributes/{attributeId}/values':
+    description: create a new value and get all values assoc. w an attribute
+    post:
+      operationId: createAttributeValue
+      description: Create a database-wide attribute value. Think 1000+ for stock count or Delware for jurisdiction.
+      parameters:
+        - in: path
+          name: attributeId
+          required: true
+          schema:
+            title: AttributeId
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: AttributeValue
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+      responses:
+        '201':
+          description: Created
+    get:
+      operationId: getAllAttributeValues
+      description: Get all a given attribute's possible values
+      parameters:
+        - in: path
+          name: attributeId
+          required: true
+          schema:
+            title: AttributeId
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  title: AttributeValueResponse
+                  type: object
+                  required:
+                    - title
+                    - id
+                  properties:
+                    title:
+                      type: string
+                    id:
+                      type: string
+  '/attributes/{attributeId}/values/{valueId}':
+    description: update and delete specific attribute values here
+    patch:
+      operationId: updateAttributeValue
+      description: Update an attribute value.
+      parameters:
+        - in: path
+          name: attributeId
+          required: true
+          schema:
+            title: AttributeId
+            type: string
+        - in: path
+          name: valueId
+          required: true
+          schema:
+            title: ValueId
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: UpdateAttributeValue
+              type: object
+              properties:
+                title:
+                  type: string
+      responses:
+        '204':
+          description: Updated
+    delete:
+      operationId: deleteAttributeValue
+      description: Delete an attribute value.
+      parameters:
+        - in: path
+          name: attributeId
+          required: true
+          schema:
+            title: AttributeId
+            type: string
+        - in: path
+          name: valueId
+          required: true
+          schema:
+            title: ValueId
+            type: string
+      responses:
+        '204':
+          description: Deleted
+  '/services/{serviceId}/attributes/{attributeId}/values':
+    description: This endpoint supports CRD on the allowed values for a service. Think 1 day or 2 day or 3 day for filing speed attribute on Ammended and Restated articles.
+    post:
+      summary: 'create a new service attribute value (not an attribute value.) This only applies to the service listed in the path. This will automatically create a Service attribute line if none exists, that''s why we need the attribute Id.'
+      operationId: createServiceAttributeValue
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            title: ServiceId
+            type: string
+        - in: path
+          name: attributeId
+          required: true
+          schema:
+            title: AttributeId
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: ServiceAttributeValue
+              type: object
+              required:
+                - attributeValueId
+              properties:
+                attributeValueId:
+                  type: string
+      responses:
+        '201':
+          description: Created
+    get:
+      summary: Get all the service attribute values for a particular attribute.
+      operationId: getServiceAttrVals
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            title: ServiceId
+            type: string
+        - in: path
+          name: attributeId
+          required: true
+          schema:
+            title: AttributeId
+            type: string
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  title: ServiceAttributeValueResponse
+                  type: object
+                  required:
+                    - id
+                    - valueTitle
+                  properties:
+                    id:
+                      type: string
+                    valueTitle:
+                      type: string
+  '/services/{serviceId}/attributes/{attributeId}/values/{valueId}':
+    delete:
+      operationId: deleteServiceAttributeValue
+      summary: Delete a service attribute value. valueId here is the service attribute value id NOT the attribute value id.
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            title: ServiceId
+            type: string
+        - in: path
+          name: attributeId
+          required: true
+          schema:
+            title: AttributeId
+            type: string
+        - in: path
+          name: valueId
+          required: true
+          schema:
+            title: ValueId
+            type: string
+      responses:
+        '204':
+          description: Deleted
+  '/services/{serviceId}/variants/':
+    get:
+      summary: 'Retrieve the fee and other information for a particular service variant, ie. (Amended and Restated Articles in Delaware, 1 Day)'
+      operationId: getFee
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            title: ServiceId
+            type: string
+        - in: query
+          name: attributeValues
+          description: This param is an array of strings where the strings are the service attribute value ids.
+          required: true
+          schema:
+            type: array
+            title: AttributeValues
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: VariantResponse
+                type: object
+                required:
+                  - currency
+                  - amount
+                properties:
+                  currency:
+                    type: string
+                  amount:
+                    type: number

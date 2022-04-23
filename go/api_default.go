@@ -10,6 +10,7 @@
 package fee_schedule_server
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +28,29 @@ func CreateAttributeValue(c *gin.Context) {
 
 // CreateService -
 func CreateService(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+
+	var requestBody CreateServiceStruct
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{})
+	}
+
+	title := requestBody.Title
+	sqlStatement := `
+	INSERT INTO services (title)
+	VALUES ($1)
+	RETURNING id
+	`
+	id := ""
+	err := db.QueryRow(sqlStatement, title).Scan(&id)
+	if err != nil {
+		panic(err)
+	}
+	successful_res := CreateServiceResponse{Id: id}
+	c.JSON(http.StatusOK, successful_res)
 }
 
 // CreateServiceAttributeValue - create a new service attribute value (not an attribute value.) This only applies to the service listed in the path. This will automatically create a Service attribute line if none exists, that's why we need the attribute Id.

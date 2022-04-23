@@ -10,6 +10,7 @@
 package fee_schedule_server
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -30,9 +31,19 @@ type Route struct {
 // Routes is the list of the generated Route.
 type Routes []Route
 
+// ApiMiddleware will add the db connection to the context
+func ApiMiddleware(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("databaseConn", db)
+		c.Next()
+	}
+}
+
 // NewRouter returns a new router.
-func NewRouter() *gin.Engine {
+func NewRouter(db *sql.DB) *gin.Engine {
 	router := gin.Default()
+	router.Use(ApiMiddleware(db))
+
 	for _, route := range routes {
 		switch route.Method {
 		case http.MethodGet:
