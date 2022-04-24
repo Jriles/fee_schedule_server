@@ -9,7 +9,7 @@
 
 package fee_schedule_server
 
-type ServiceAttributeValue struct {
+type UpdateServiceSchema struct {
 
-	AttributeValueId string `json:"attributeValueId"`
+	Title string `json:"title,omitempty"`
 }

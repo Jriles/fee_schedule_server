@@ -9,8 +9,7 @@
 
 package fee_schedule_server
 
-type ServiceAttributeValueResponse struct {
-	Id string `json:"id"`
+type CreateAttributeSchema struct {
 
-	ValueTitle string `json:"valueTitle"`
+	Title string `json:"title"`
 }

@@ -10,5 +10,6 @@
 package fee_schedule_server
 
 type CreateServiceResponse struct {
+
 	Id string `json:"id"`
 }

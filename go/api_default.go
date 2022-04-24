@@ -18,12 +18,56 @@ import (
 
 // CreateAttribute -
 func CreateAttribute(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+
+	var requestBody Attribute
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{})
+	} else {
+		title := requestBody.Title
+		sqlStatement := `
+		INSERT INTO attributes (title)
+		VALUES ($1)
+		RETURNING id
+		`
+		id := ""
+		err := db.QueryRow(sqlStatement, title).Scan(&id)
+		if err != nil {
+			panic(err)
+		}
+		successful_res := AttributeResponse{Id: id}
+		c.JSON(http.StatusOK, successful_res)
+	}
 }
 
 // CreateAttributeValue -
 func CreateAttributeValue(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+
+	var requestBody AttributeValue
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{})
+	} else {
+		title := requestBody.Title
+		sqlStatement := `
+		INSERT INTO attribute_values (title, attribute_id)
+		VALUES ($1)
+		RETURNING id
+		`
+		id := ""
+		err := db.QueryRow(sqlStatement, title).Scan(&id)
+		if err != nil {
+			panic(err)
+		}
+		successful_res := AttributeResponse{Id: id}
+		c.JSON(http.StatusOK, successful_res)
+	}
 }
 
 // CreateService -
@@ -33,24 +77,24 @@ func CreateService(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 
-	var requestBody CreateServiceStruct
+	var requestBody CreateServiceSchema
 	if err := c.BindJSON(&requestBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{})
+	} else {
+		title := requestBody.Title
+		sqlStatement := `
+		INSERT INTO services (title)
+		VALUES ($1)
+		RETURNING id
+		`
+		id := ""
+		err := db.QueryRow(sqlStatement, title).Scan(&id)
+		if err != nil {
+			panic(err)
+		}
+		successful_res := CreateServiceResponse{Id: id}
+		c.JSON(http.StatusOK, successful_res)
 	}
-
-	title := requestBody.Title
-	sqlStatement := `
-	INSERT INTO services (title)
-	VALUES ($1)
-	RETURNING id
-	`
-	id := ""
-	err := db.QueryRow(sqlStatement, title).Scan(&id)
-	if err != nil {
-		panic(err)
-	}
-	successful_res := CreateServiceResponse{Id: id}
-	c.JSON(http.StatusOK, successful_res)
 }
 
 // CreateServiceAttributeValue - create a new service attribute value (not an attribute value.) This only applies to the service listed in the path. This will automatically create a Service attribute line if none exists, that's why we need the attribute Id.

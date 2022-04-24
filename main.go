@@ -29,8 +29,7 @@ var db_conn = ""
 
 func main() {
 	db_conn = os.Getenv("FEE_SCHEDULE_SERVER_DB_CONN")
-	log.Print(os.Getenv("FEE_SCHEDULE_SERVER_DB_CONN"))
-	log.Printf("here")
+
 	db, err := sql.Open("postgres", db_conn)
 	if err != nil {
 		log.Fatal("Failed to open a DB connection: ", err)
