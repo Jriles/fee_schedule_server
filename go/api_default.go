@@ -36,10 +36,10 @@ func CreateAttribute(c *gin.Context) {
 		id := ""
 		err := db.QueryRow(sqlStatement, title).Scan(&id)
 		if err != nil {
-			panic(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
 		}
-		successful_res := AttributeResponse{Id: id}
-		c.JSON(http.StatusOK, successful_res)
+		successfulRes := AttributeResponse{Id: id}
+		c.JSON(http.StatusOK, successfulRes)
 	}
 }
 
@@ -51,22 +51,23 @@ func CreateAttributeValue(c *gin.Context) {
 	}
 
 	var requestBody AttributeValue
-	if err := c.BindJSON(&requestBody); err != nil {
+	attributeId := c.Param("attributeId")
+	if err := c.BindJSON(&requestBody); err != nil || attributeId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
 		title := requestBody.Title
 		sqlStatement := `
 		INSERT INTO attribute_values (title, attribute_id)
-		VALUES ($1)
+		VALUES ($1, $2)
 		RETURNING id
 		`
 		id := ""
-		err := db.QueryRow(sqlStatement, title).Scan(&id)
+		err := db.QueryRow(sqlStatement, title, attributeId).Scan(&id)
 		if err != nil {
-			panic(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
 		}
-		successful_res := AttributeResponse{Id: id}
-		c.JSON(http.StatusOK, successful_res)
+		successfulRes := AttributeResponse{Id: id}
+		c.JSON(http.StatusOK, successfulRes)
 	}
 }
 
@@ -90,16 +91,16 @@ func CreateService(c *gin.Context) {
 		id := ""
 		err := db.QueryRow(sqlStatement, title).Scan(&id)
 		if err != nil {
-			panic(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
 		}
-		successful_res := CreateServiceResponse{Id: id}
-		c.JSON(http.StatusOK, successful_res)
+		successfulRes := CreateServiceResponse{Id: id}
+		c.JSON(http.StatusOK, successfulRes)
 	}
 }
 
 // CreateServiceAttributeValue - create a new service attribute value (not an attribute value.) This only applies to the service listed in the path. This will automatically create a Service attribute line if none exists, that's why we need the attribute Id.
 func CreateServiceAttributeValue(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	// this needs to change and be redesigned to work with service lines
 }
 
 // DeleteAttribute -
@@ -114,7 +115,21 @@ func DeleteAttributeValue(c *gin.Context) {
 
 // DeleteService -
 func DeleteService(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	serviceId := c.Param("serviceId")
+	stmt, err := db.Prepare("DELETE FROM services WHERE id=$1")
+	if err != nil {
+		panic(err)
+	}
+	_, err = stmt.Exec(serviceId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, gin.H{})
+	}
 }
 
 // DeleteServiceAttributeValue - Delete a service attribute value. valueId here is the service attribute value id NOT the attribute value id.
