@@ -104,6 +104,13 @@ var routes = Routes{
 	},
 
 	{
+		"CreateServiceAttributeLine",
+		http.MethodPost,
+		"/services/:serviceId/attribute_lines/:attributeId",
+		CreateServiceAttributeLine,
+	},
+
+	{
 		"DeleteAttribute",
 		http.MethodDelete,
 		"/attributes/:attributeId",
@@ -129,6 +136,13 @@ var routes = Routes{
 		http.MethodDelete,
 		"/services/:serviceId/attributes/:attributeId/values/:valueId",
 		DeleteServiceAttributeValue,
+	},
+
+	{
+		"DeleteServiceAttributeLine",
+		http.MethodDelete,
+		"/services/:serviceId/attribute_lines/:attributeId",
+		DeleteServiceAttributeLine,
 	},
 
 	{

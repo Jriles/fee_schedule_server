@@ -98,9 +98,49 @@ func CreateService(c *gin.Context) {
 	}
 }
 
-// CreateServiceAttributeValue - create a new service attribute value (not an attribute value.) This only applies to the service listed in the path. This will automatically create a Service attribute line if none exists, that's why we need the attribute Id.
+// CreateServiceAttributeValue - create a new service attribute value (not an attribute value.) This only applies to the service listed in the path.
 func CreateServiceAttributeValue(c *gin.Context) {
-	// this needs to change and be redesigned to work with service lines
+	// db, ok := c.MustGet("databaseConn").(*sql.DB)
+	// if !ok {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{})
+	// }
+
+	// attributeId := c.Param("attributeId")
+	// sqlStatement := `
+	// INSERT INTO services (title)
+	// VALUES ($1)
+	// RETURNING id
+	// `
+	// id := ""
+	// err := db.QueryRow(sqlStatement, title).Scan(&id)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{})
+	// }
+	// successfulRes := CreateServiceResponse{Id: id}
+	// c.JSON(http.StatusOK, successfulRes)
+}
+
+func CreateServiceAttributeLine(c *gin.Context) {
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+
+	serviceId := c.Param("serviceId")
+	attributeId := c.Param("attributeId")
+	sqlStatement := `
+	INSERT INTO service_attribute_lines (service_id, attribute_id)
+	VALUES ($1, $2)
+	RETURNING id
+	`
+	id := ""
+	err := db.QueryRow(sqlStatement, serviceId, attributeId).Scan(&id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		successfulRes := AttributeResponse{Id: id}
+		c.JSON(http.StatusOK, successfulRes)
+	}
 }
 
 // DeleteAttribute -
@@ -134,6 +174,10 @@ func DeleteService(c *gin.Context) {
 
 // DeleteServiceAttributeValue - Delete a service attribute value. valueId here is the service attribute value id NOT the attribute value id.
 func DeleteServiceAttributeValue(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+func DeleteServiceAttributeLine(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
