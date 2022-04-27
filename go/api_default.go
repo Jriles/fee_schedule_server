@@ -100,24 +100,33 @@ func CreateService(c *gin.Context) {
 
 // CreateServiceAttributeValue - create a new service attribute value (not an attribute value.) This only applies to the service listed in the path.
 func CreateServiceAttributeValue(c *gin.Context) {
-	// db, ok := c.MustGet("databaseConn").(*sql.DB)
-	// if !ok {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{})
-	// }
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
 
-	// attributeId := c.Param("attributeId")
-	// sqlStatement := `
-	// INSERT INTO services (title)
-	// VALUES ($1)
-	// RETURNING id
-	// `
-	// id := ""
-	// err := db.QueryRow(sqlStatement, title).Scan(&id)
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{})
-	// }
-	// successfulRes := CreateServiceResponse{Id: id}
-	// c.JSON(http.StatusOK, successfulRes)
+	var requestBody CreateServiceAttributeValueSchema
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{})
+	} else {
+		lineId := c.Param("lineId")
+		attributeValueId := requestBody.AttributeValueId
+
+		sqlStatement := `
+		INSERT INTO service_attribute_values (line_id, attribute_value_id)
+		VALUES ($1, $2)
+		RETURNING id
+		`
+
+		id := ""
+		err := db.QueryRow(sqlStatement, lineId, attributeValueId).Scan(&id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{})
+		} else {
+			successfulRes := CreateServiceResponse{Id: id}
+			c.JSON(http.StatusOK, successfulRes)
+		}
+	}
 }
 
 func CreateServiceAttributeLine(c *gin.Context) {
@@ -127,19 +136,24 @@ func CreateServiceAttributeLine(c *gin.Context) {
 	}
 
 	serviceId := c.Param("serviceId")
-	attributeId := c.Param("attributeId")
-	sqlStatement := `
-	INSERT INTO service_attribute_lines (service_id, attribute_id)
-	VALUES ($1, $2)
-	RETURNING id
-	`
-	id := ""
-	err := db.QueryRow(sqlStatement, serviceId, attributeId).Scan(&id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{})
+	var requestBody CreateServiceAttributeLineSchema
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
-		successfulRes := AttributeResponse{Id: id}
-		c.JSON(http.StatusOK, successfulRes)
+		attributeId := requestBody.AttributeId
+		sqlStatement := `
+		INSERT INTO service_attribute_lines (service_id, attribute_id)
+		VALUES ($1, $2)
+		RETURNING id
+		`
+		id := ""
+		err := db.QueryRow(sqlStatement, serviceId, attributeId).Scan(&id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{})
+		} else {
+			successfulRes := AttributeResponse{Id: id}
+			c.JSON(http.StatusOK, successfulRes)
+		}
 	}
 }
 

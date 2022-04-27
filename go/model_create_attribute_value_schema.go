@@ -11,5 +11,5 @@ package fee_schedule_server
 
 type CreateAttributeValueSchema struct {
 
-	Title string `json:"title"`
+	Title string `json:"title,omitempty"`
 }

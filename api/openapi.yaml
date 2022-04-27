@@ -235,7 +235,7 @@ paths:
                 title:
                   type: string
               required:
-              - title
+              - attributeId
               title: CreateAttributeValueSchema
               type: object
         required: true
@@ -303,7 +303,40 @@ paths:
       responses:
         "204":
           description: Updated
-  /services/{serviceId}/attribute_lines/{attributeId}:
+  /services/{serviceId}/attribute_lines:
+    post:
+      operationId: createServiceAttributeLine
+      parameters:
+      - explode: false
+        in: path
+        name: serviceId
+        required: true
+        schema:
+          title: ServiceId
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/CreateServiceAttributeLineSchema'
+        content:
+          application/json:
+            schema:
+              example:
+                attributeId: attributeId
+              properties:
+                attributeId:
+                  description: this refers to the high-level attributes
+                  type: string
+              required:
+              - attributeId
+              title: CreateServiceAttributeLineSchema
+              type: object
+        required: true
+      responses:
+        "201":
+          description: Created
+      summary: Create an attribute line for a service. This is how we relate attribute
+        values to services.
+  /services/{serviceId}/attribute_lines/{lineId}:
     delete:
       operationId: deleteServiceAttributeLine
       parameters:
@@ -317,41 +350,17 @@ paths:
         style: simple
       - explode: false
         in: path
-        name: attributeId
+        name: lineId
         required: true
         schema:
-          title: lineId
+          title: LineId
           type: string
         style: simple
       responses:
         "204":
           description: Deleted
       summary: Delete a service attribute line.
-    post:
-      operationId: createServiceAttributeLine
-      parameters:
-      - explode: false
-        in: path
-        name: serviceId
-        required: true
-        schema:
-          title: ServiceId
-          type: string
-        style: simple
-      - explode: false
-        in: path
-        name: attributeId
-        required: true
-        schema:
-          title: lineId
-          type: string
-        style: simple
-      responses:
-        "201":
-          description: Created
-      summary: Create an attribute line for a service. This is how we relate attribute
-        values to services.
-  /services/{serviceId}/attribute_lines/{attributeId}/values:
+  /services/{serviceId}/attribute_lines/{lineId}/values:
     description: This endpoint supports CRD on the allowed values for a service. Think
       1 day or 2 day or 3 day for filing speed attribute on Ammended and Restated
       articles.
@@ -368,10 +377,10 @@ paths:
         style: simple
       - explode: false
         in: path
-        name: attributeId
+        name: lineId
         required: true
         schema:
-          title: AttributeId
+          title: LineId
           type: string
         style: simple
       responses:
@@ -383,7 +392,8 @@ paths:
                   $ref: '#/components/schemas/ServiceAttributeValueResponse'
                 type: array
           description: Created
-      summary: Get all the service attribute values for a particular attribute.
+      summary: Get all the service attribute values for a particular service attribute
+        line.
     post:
       operationId: createServiceAttributeValue
       parameters:
@@ -397,10 +407,10 @@ paths:
         style: simple
       - explode: false
         in: path
-        name: attributeId
+        name: lineId
         required: true
         schema:
-          title: AttributeId
+          title: LineId
           type: string
         style: simple
       requestBody:
@@ -423,7 +433,7 @@ paths:
           description: Created
       summary: create a new service attribute value (not an attribute value.) This
         only applies to the service listed in the path.
-  /services/{serviceId}/attributes/{attributeId}/values/{valueId}:
+  /services/{serviceId}/attribute_lines/{lineId}/values/{valueId}:
     delete:
       operationId: deleteServiceAttributeValue
       parameters:
@@ -437,10 +447,10 @@ paths:
         style: simple
       - explode: false
         in: path
-        name: attributeId
+        name: lineId
         required: true
         schema:
-          title: AttributeId
+          title: LineId
           type: string
         style: simple
       - explode: false
@@ -533,6 +543,12 @@ components:
           schema:
             $ref: '#/components/schemas/UpdateServiceSchema'
       required: true
+    CreateServiceAttributeLineSchema:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateServiceAttributeLineSchema'
+      required: true
   schemas:
     UpdateAttributeValueSchema:
       example:
@@ -559,6 +575,51 @@ components:
         title:
           type: string
       title: UpdateAttributeSchema
+      type: object
+    CreateServiceAttributeValueSchema:
+      example:
+        attributeValueId: attributeValueId
+      properties:
+        attributeValueId:
+          type: string
+      required:
+      - attributeValueId
+      title: CreateServiceAttributeValueSchema
+      type: object
+    CreateAttributeValueSchema:
+      example:
+        title: title
+      properties:
+        title:
+          type: string
+      required:
+      - attributeId
+      title: CreateAttributeValueSchema
+      type: object
+    AttributeValueResponse:
+      example:
+        id: id
+        title: title
+      properties:
+        title:
+          type: string
+        id:
+          type: string
+      required:
+      - id
+      - title
+      title: AttributeValueResponse
+      type: object
+    CreateServiceAttributeLineSchema:
+      example:
+        attributeId: attributeId
+      properties:
+        attributeId:
+          description: this refers to the high-level attributes
+          type: string
+      required:
+      - attributeId
+      title: CreateServiceAttributeLineSchema
       type: object
     CreateServiceSchema:
       example:
@@ -611,16 +672,6 @@ components:
       - id
       - title
       type: object
-    CreateServiceAttributeValueSchema:
-      example:
-        attributeValueId: attributeValueId
-      properties:
-        attributeValueId:
-          type: string
-      required:
-      - attributeValueId
-      title: CreateServiceAttributeValueSchema
-      type: object
     AttributeResponse:
       example:
         id: id
@@ -635,16 +686,6 @@ components:
       - title
       title: AttributeResponse
       type: object
-    CreateAttributeValueSchema:
-      example:
-        title: title
-      properties:
-        title:
-          type: string
-      required:
-      - title
-      title: CreateAttributeValueSchema
-      type: object
     UpdateServiceSchema:
       example:
         title: title
@@ -652,18 +693,4 @@ components:
         title:
           type: string
       title: UpdateServiceSchema
-      type: object
-    AttributeValueResponse:
-      example:
-        id: id
-        title: title
-      properties:
-        title:
-          type: string
-        id:
-          type: string
-      required:
-      - id
-      - title
-      title: AttributeValueResponse
       type: object

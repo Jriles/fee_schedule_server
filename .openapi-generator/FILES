@@ -5,6 +5,7 @@ go/model_attribute_response.go
 go/model_attribute_value_response.go
 go/model_create_attribute_schema.go
 go/model_create_attribute_value_schema.go
+go/model_create_service_attribute_line_schema.go
 go/model_create_service_attribute_value_schema.go
 go/model_create_service_schema.go
 go/model_inline_response_200.go
