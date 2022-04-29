@@ -159,12 +159,40 @@ func CreateServiceAttributeLine(c *gin.Context) {
 
 // DeleteAttribute -
 func DeleteAttribute(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	attributeId := c.Param("attributeId")
+	stmt, err := db.Prepare("DELETE FROM attributes WHERE id=$1")
+	if err != nil {
+		panic(err)
+	}
+	_, err = stmt.Exec(attributeId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, gin.H{})
+	}
 }
 
 // DeleteAttributeValue -
 func DeleteAttributeValue(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	valueID := c.Param("valueId")
+	stmt, err := db.Prepare("DELETE FROM attribute_values WHERE id=$1")
+	if err != nil {
+		panic(err)
+	}
+	_, err = stmt.Exec(valueID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, gin.H{})
+	}
 }
 
 // DeleteService -
