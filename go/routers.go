@@ -134,7 +134,7 @@ var routes = Routes{
 	{
 		"DeleteServiceAttributeValue",
 		http.MethodDelete,
-		"/services/:serviceId/attribute_values/:lineId/values/:valueId",
+		"/services/:serviceId/attribute_lines/:lineId/values/:valueId",
 		DeleteServiceAttributeValue,
 	},
 

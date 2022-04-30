@@ -216,11 +216,39 @@ func DeleteService(c *gin.Context) {
 
 // DeleteServiceAttributeValue - Delete a service attribute value. valueId here is the service attribute value id NOT the attribute value id.
 func DeleteServiceAttributeValue(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	valueId := c.Param("valueId")
+	stmt, err := db.Prepare("DELETE FROM service_attribute_values WHERE id=$1")
+	if err != nil {
+		panic(err)
+	}
+	_, err = stmt.Exec(valueId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, gin.H{})
+	}
 }
 
 func DeleteServiceAttributeLine(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	lineId := c.Param("lineId")
+	stmt, err := db.Prepare("DELETE FROM service_attribute_lines WHERE id=$1")
+	if err != nil {
+		panic(err)
+	}
+	_, err = stmt.Exec(lineId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, gin.H{})
+	}
 }
 
 // GetAllAttributeValues -
