@@ -11,9 +11,16 @@ package fee_schedule_server
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	attrValResArrKey = "attribute_values"
+	attrResArrKey    = "attributes"
+	serviceResArrKey = "services"
 )
 
 // CreateAttribute -
@@ -253,17 +260,101 @@ func DeleteServiceAttributeLine(c *gin.Context) {
 
 // GetAllAttributeValues -
 func GetAllAttributeValues(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	attributeId := c.Param("attributeId")
+	rows, err := db.Query(
+		"SELECT * FROM attribute_values WHERE attribute_id=$1",
+		attributeId)
+	if err != nil {
+		panic(err)
+	}
+
+	var attrValResArr []AttributeValueResponse
+	for rows.Next() {
+		var attrValRes AttributeValueResponse
+		var attrId string
+		err := rows.Scan(&attrValRes.Id, &attrValRes.Title, &attrId)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		attrValResArr = append(attrValResArr, attrValRes)
+	}
+
+	defer rows.Close()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			attrValResArrKey: attrValResArr,
+		})
+	}
 }
 
 // GetAllAttributes -
 func GetAllAttributes(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	rows, err := db.Query(
+		"SELECT * FROM attributes")
+	if err != nil {
+		panic(err)
+	}
+
+	var attrResArr []AttributeResponse
+	for rows.Next() {
+		var attrRes AttributeResponse
+		err := rows.Scan(&attrRes.Id, &attrRes.Title)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		attrResArr = append(attrResArr, attrRes)
+	}
+
+	defer rows.Close()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			attrResArrKey: attrResArr,
+		})
+	}
 }
 
 // GetAllServices -
 func GetAllServices(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	rows, err := db.Query(
+		"SELECT * FROM services")
+	if err != nil {
+		panic(err)
+	}
+
+	var serviceResArr []ServiceResponse
+	for rows.Next() {
+		var serviceRes ServiceResponse
+		err := rows.Scan(&serviceRes.Id, &serviceRes.Title)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		serviceResArr = append(serviceResArr, serviceRes)
+	}
+
+	defer rows.Close()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			serviceResArrKey: serviceResArr,
+		})
+	}
 }
 
 // GetFee - Retrieve the fee and other information for a particular service variant, ie. (Amended and Restated Articles in Delaware, 1 Day)
@@ -273,7 +364,24 @@ func GetFee(c *gin.Context) {
 
 // GetService -
 func GetService(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	var serviceRes ServiceResponse
+	serviceId := c.Param("serviceId")
+	err := db.QueryRow(
+		"SELECT * FROM services WHERE id=$1",
+		serviceId).Scan(&serviceRes.Id, &serviceRes.Title)
+	if err != nil {
+		panic(err)
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, serviceRes)
+	}
 }
 
 // GetServiceAttrVals - Get all the service attribute values for a particular attribute.

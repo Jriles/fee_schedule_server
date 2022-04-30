@@ -16,7 +16,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/inline_response_200'
+                  $ref: '#/paths/~1services/post/responses/201/content/application~1json/schema'
                 type: array
           description: OK
     post:
@@ -43,7 +43,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/paths/~1services/get/responses/200/content/application~1json/schema/items'
+                $ref: '#/components/schemas/ServiceResponse'
           description: Created
   /services/{serviceId}/:
     delete:
@@ -78,7 +78,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/paths/~1services/get/responses/200/content/application~1json/schema/items'
+                $ref: '#/paths/~1services/post/responses/201/content/application~1json/schema'
           description: OK
     patch:
       description: Update Service values
@@ -621,6 +621,20 @@ components:
       - attributeId
       title: CreateServiceAttributeLineSchema
       type: object
+    ServiceResponse:
+      example:
+        id: id
+        title: title
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+      required:
+      - id
+      - title
+      title: ServiceResponse
+      type: object
     CreateServiceSchema:
       example:
         title: title
@@ -658,19 +672,6 @@ components:
       - amount
       - currency
       title: VariantResponse
-      type: object
-    inline_response_200:
-      example:
-        id: id
-        title: title
-      properties:
-        id:
-          type: string
-        title:
-          type: string
-      required:
-      - id
-      - title
       type: object
     AttributeResponse:
       example:
