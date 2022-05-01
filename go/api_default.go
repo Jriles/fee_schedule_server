@@ -499,5 +499,29 @@ func UpdateAttributeValue(c *gin.Context) {
 
 // UpdateService -
 func UpdateService(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	serviceId := c.Param("serviceId")
+	var requestBody Attribute
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{})
+	} else {
+		title := requestBody.Title
+		stmt, err := db.Prepare(
+			"UPDATE services SET title = $1 WHERE id = $2",
+		)
+		if err != nil {
+			log.Fatalln(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+		}
+		_, err = stmt.Exec(title, serviceId)
+		if err != nil {
+			log.Fatalln(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+		} else {
+			c.JSON(http.StatusNoContent, gin.H{})
+		}
+	}
 }
