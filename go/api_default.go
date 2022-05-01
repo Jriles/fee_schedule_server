@@ -441,7 +441,31 @@ func GetServiceAttrLineVals(c *gin.Context) {
 
 // UpdateAttribute -
 func UpdateAttribute(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	attributeId := c.Param("attributeId")
+	var requestBody Attribute
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{})
+	} else {
+		title := requestBody.Title
+		stmt, err := db.Prepare(
+			"UPDATE attributes SET title = $1 WHERE id = $2",
+		)
+		if err != nil {
+			log.Fatalln(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+		}
+		_, err = stmt.Exec(title, attributeId)
+		if err != nil {
+			log.Fatalln(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+		} else {
+			c.JSON(http.StatusNoContent, gin.H{})
+		}
+	}
 }
 
 // UpdateAttributeValue -
