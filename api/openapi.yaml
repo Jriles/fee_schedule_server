@@ -598,6 +598,7 @@ components:
       type: object
     AttributeValueResponse:
       example:
+        attributeId: attributeId
         id: id
         title: title
       properties:
@@ -605,7 +606,10 @@ components:
           type: string
         id:
           type: string
+        attributeId:
+          type: string
       required:
+      - attributeValueId
       - id
       - title
       title: AttributeValueResponse

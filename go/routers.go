@@ -183,8 +183,8 @@ var routes = Routes{
 	{
 		"GetServiceAttrVals",
 		http.MethodGet,
-		"/services/:serviceId/attributes/:attributeId/values",
-		GetServiceAttrVals,
+		"/services/:serviceId/attribute_lines/:lineId/values",
+		GetServiceAttrLineVals,
 	},
 
 	{

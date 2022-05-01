@@ -15,6 +15,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 )
 
 const (
@@ -384,10 +385,59 @@ func GetService(c *gin.Context) {
 	}
 }
 
-// GetServiceAttrVals - Get all the service attribute values for a particular attribute.
-func GetServiceAttrVals(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+// GetServiceAttrVals - Get all the service attribute values for a particular service attr line.
+func GetServiceAttrLineVals(c *gin.Context) {
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	lineId := c.Param("lineId")
+	serviceAttrVals, err := db.Query(
+		"SELECT attribute_value_id FROM service_attribute_values WHERE line_id=$1",
+		lineId,
+	)
+	if err != nil {
+		panic(err)
+	}
+	var attrValIds []string
+	for serviceAttrVals.Next() {
+		var attrValId string
+		err := serviceAttrVals.Scan(&attrValId)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		attrValIds = append(attrValIds, attrValId)
+	}
+
+	rows, attrValsErr := db.Query(
+		"SELECT * FROM attribute_values WHERE id = ANY($1)",
+		pq.Array(attrValIds),
+	)
+	if attrValsErr != nil {
+		panic(attrValsErr)
+	}
+
+	var attrValResArr []AttributeValueResponse
+	for rows.Next() {
+		var attrValRes AttributeValueResponse
+		err := rows.Scan(&attrValRes.Id, &attrValRes.Title, &attrValRes.AttributeId)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		attrValResArr = append(attrValResArr, attrValRes)
+	}
+
+	defer rows.Close()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			attrValResArrKey: attrValResArr,
+		})
+	}
 }
+
+//TODO get individual attribute value using id
 
 // UpdateAttribute -
 func UpdateAttribute(c *gin.Context) {

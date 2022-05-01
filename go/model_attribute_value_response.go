@@ -14,4 +14,6 @@ type AttributeValueResponse struct {
 	Title string `json:"title"`
 
 	Id string `json:"id"`
+
+	AttributeId string `json:"attributeId,omitempty"`
 }
