@@ -49,7 +49,7 @@ func CreateAttribute(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			successfulRes := AttributeResponse{Id: id}
-			c.JSON(http.StatusOK, successfulRes)
+			c.JSON(http.StatusCreated, successfulRes)
 		}
 	}
 }
@@ -80,7 +80,7 @@ func CreateAttributeValue(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			successfulRes := AttributeResponse{Id: id}
-			c.JSON(http.StatusOK, successfulRes)
+			c.JSON(http.StatusCreated, successfulRes)
 		}
 	}
 }
@@ -110,7 +110,7 @@ func CreateService(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			successfulRes := CreateServiceResponse{Id: id}
-			c.JSON(http.StatusOK, successfulRes)
+			c.JSON(http.StatusCreated, successfulRes)
 		}
 	}
 }
@@ -143,7 +143,7 @@ func CreateServiceAttributeValue(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			successfulRes := CreateServiceResponse{Id: id}
-			c.JSON(http.StatusOK, successfulRes)
+			c.JSON(http.StatusCreated, successfulRes)
 		}
 	}
 }
@@ -173,7 +173,7 @@ func CreateServiceAttributeLine(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			successfulRes := AttributeResponse{Id: id}
-			c.JSON(http.StatusOK, successfulRes)
+			c.JSON(http.StatusCreated, successfulRes)
 		}
 	}
 }
@@ -218,7 +218,7 @@ func CreateVariant(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			successfulRes := VariantResponse{Id: id}
-			c.JSON(http.StatusOK, successfulRes)
+			c.JSON(http.StatusCreated, successfulRes)
 		}
 	}
 }
@@ -240,7 +240,7 @@ func DeleteAttribute(c *gin.Context) {
 		log.Fatalln(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
-		c.JSON(http.StatusOK, gin.H{})
+		c.JSON(http.StatusNoContent, gin.H{})
 	}
 }
 
@@ -261,7 +261,7 @@ func DeleteAttributeValue(c *gin.Context) {
 		log.Fatalln(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
-		c.JSON(http.StatusOK, gin.H{})
+		c.JSON(http.StatusNoContent, gin.H{})
 	}
 }
 
@@ -282,7 +282,7 @@ func DeleteService(c *gin.Context) {
 		log.Fatalln(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
-		c.JSON(http.StatusOK, gin.H{})
+		c.JSON(http.StatusNoContent, gin.H{})
 	}
 }
 
@@ -303,7 +303,7 @@ func DeleteServiceAttributeValue(c *gin.Context) {
 		log.Fatalln(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
-		c.JSON(http.StatusOK, gin.H{})
+		c.JSON(http.StatusNoContent, gin.H{})
 	}
 }
 
@@ -323,12 +323,28 @@ func DeleteServiceAttributeLine(c *gin.Context) {
 		log.Fatalln(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
-		c.JSON(http.StatusOK, gin.H{})
+		c.JSON(http.StatusNoContent, gin.H{})
 	}
 }
 
 func DeleteVariant(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	variantId := c.Param("variantId")
+	stmt, err := db.Prepare("DELETE FROM service_variants WHERE id=$1")
+	if err != nil {
+		log.Fatalln(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	_, err = stmt.Exec(variantId)
+	if err != nil {
+		log.Fatalln(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusNoContent, gin.H{})
+	}
 }
 
 // GetAllAttributeValues -
