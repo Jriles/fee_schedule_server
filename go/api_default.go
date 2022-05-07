@@ -217,7 +217,7 @@ func CreateVariant(c *gin.Context) {
 			log.Fatalln(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
-			successfulRes := VariantResponse{Id: id}
+			successfulRes := VariantCreatedResponse{Id: id}
 			c.JSON(http.StatusCreated, successfulRes)
 		}
 	}
@@ -459,7 +459,38 @@ func GetAllServices(c *gin.Context) {
 
 // GetFee - Retrieve the fee and other information for a particular service variant, ie. (Amended and Restated Articles in Delaware, 1 Day)
 func GetVariant(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	var variantResponse VariantResponse
+	serviceAttributeValueIds := c.Request.URL.Query()["serviceAttributeValueIds[]"]
+	combinationLen := len(serviceAttributeValueIds)
+	serviceAttributeValueIdsPqArr := pq.Array(serviceAttributeValueIds)
+
+	combinationErr := db.QueryRow(
+		`SELECT service_variant_id
+		FROM service_variant_combination 
+		WHERE service_attribute_value_id = ANY($1) 
+		GROUP BY service_variant_id HAVING COUNT(*) >= $2
+		`,
+		serviceAttributeValueIdsPqArr, combinationLen).Scan(
+		&variantResponse.Id,
+	)
+	if combinationErr != nil {
+		log.Fatalln(combinationErr)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+
+	variantErr := db.QueryRow(
+		"SELECT fee FROM service_variants WHERE id=$1",
+		variantResponse.Id).Scan(&variantResponse.Fee)
+	if variantErr != nil {
+		log.Fatalln(variantErr)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, variantResponse)
+	}
 }
 
 // GetService -

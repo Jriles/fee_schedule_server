@@ -482,12 +482,12 @@ paths:
           attribute value ids.
         explode: true
         in: query
-        name: attributeValues
+        name: serviceAttributeValueIds[]
         required: true
         schema:
           items:
             type: string
-          title: AttributeValues
+          title: ServiceAttributeValueIds
           type: array
         style: form
       responses:
@@ -539,7 +539,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/paths/~1services~1%7BserviceId%7D~1variants~1/get/responses/200/content/application~1json/schema'
+                  $ref: '#/components/schemas/VariantCreatedResponse'
                 type: array
           description: Created
       summary: Create a variant for a service with a specific combination of Jurisdiction,
@@ -700,6 +700,16 @@ components:
       - attributeId
       title: CreateServiceAttributeLineSchema
       type: object
+    VariantCreatedResponse:
+      example:
+        id: id
+      properties:
+        id:
+          type: string
+      required:
+      - id
+      title: VariantCreatedResponse
+      type: object
     ServiceResponse:
       example:
         id: id
@@ -740,11 +750,15 @@ components:
       type: object
     VariantResponse:
       example:
+        fee: 0.8008281904610115
         id: id
       properties:
         id:
           type: string
+        fee:
+          type: number
       required:
+      - fee
       - id
       title: VariantResponse
       type: object

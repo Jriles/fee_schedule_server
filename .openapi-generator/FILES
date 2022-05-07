@@ -14,4 +14,5 @@ go/model_service_response.go
 go/model_update_attribute_schema.go
 go/model_update_attribute_value_schema.go
 go/model_update_service_schema.go
+go/model_variant_created_response.go
 go/model_variant_response.go
