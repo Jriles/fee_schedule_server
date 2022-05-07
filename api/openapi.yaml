@@ -468,7 +468,7 @@ paths:
         value id NOT the attribute value id.
   /services/{serviceId}/variants/:
     get:
-      operationId: getFee
+      operationId: getVariant
       parameters:
       - explode: false
         in: path
@@ -499,6 +499,75 @@ paths:
           description: OK
       summary: Retrieve the fee and other information for a particular service variant,
         ie. (Amended and Restated Articles in Delaware, 1 Day)
+    post:
+      operationId: createVariant
+      parameters:
+      - explode: false
+        in: path
+        name: serviceId
+        required: true
+        schema:
+          title: ServiceId
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/CreateServiceVariantSchema'
+        content:
+          application/json:
+            schema:
+              example:
+                serviceAttributeValueIds:
+                - serviceAttributeValueIds
+                - serviceAttributeValueIds
+                fee: 0.8008281904610115
+              properties:
+                fee:
+                  type: number
+                serviceAttributeValueIds:
+                  items:
+                    type: string
+                  type: array
+              required:
+              - fee
+              - serviceAttributeValueIds
+              title: CreateServiceVariantSchema
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/paths/~1services~1%7BserviceId%7D~1variants~1/get/responses/200/content/application~1json/schema'
+                type: array
+          description: Created
+      summary: Create a variant for a service with a specific combination of Jurisdiction,
+        Filing Speed and Entity type.
+  /services/{serviceId}/variants/{variantId}:
+    delete:
+      operationId: deleteVariant
+      parameters:
+      - explode: false
+        in: path
+        name: serviceId
+        required: true
+        schema:
+          title: ServiceId
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: variantId
+        required: true
+        schema:
+          title: VariantId
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Deleted
+      summary: Delete a service variant.
 components:
   requestBodies:
     UpdateAttributeValueSchema:
@@ -548,6 +617,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/CreateServiceAttributeLineSchema'
+      required: true
+    CreateServiceVariantSchema:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateServiceVariantSchema'
       required: true
   schemas:
     UpdateAttributeValueSchema:
@@ -665,16 +740,12 @@ components:
       type: object
     VariantResponse:
       example:
-        amount: 0.8008281904610115
-        currency: currency
+        id: id
       properties:
-        currency:
+        id:
           type: string
-        amount:
-          type: number
       required:
-      - amount
-      - currency
+      - id
       title: VariantResponse
       type: object
     AttributeResponse:
@@ -698,4 +769,22 @@ components:
         title:
           type: string
       title: UpdateServiceSchema
+      type: object
+    CreateServiceVariantSchema:
+      example:
+        serviceAttributeValueIds:
+        - serviceAttributeValueIds
+        - serviceAttributeValueIds
+        fee: 0.8008281904610115
+      properties:
+        fee:
+          type: number
+        serviceAttributeValueIds:
+          items:
+            type: string
+          type: array
+      required:
+      - fee
+      - serviceAttributeValueIds
+      title: CreateServiceVariantSchema
       type: object

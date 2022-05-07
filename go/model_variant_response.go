@@ -11,7 +11,5 @@ package fee_schedule_server
 
 type VariantResponse struct {
 
-	Currency string `json:"currency"`
-
-	Amount float32 `json:"amount"`
+	Id string `json:"id"`
 }

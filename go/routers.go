@@ -111,6 +111,13 @@ var routes = Routes{
 	},
 
 	{
+		"CreateVariant",
+		http.MethodPost,
+		"/services/:serviceId/variants",
+		CreateVariant,
+	},
+
+	{
 		"DeleteAttribute",
 		http.MethodDelete,
 		"/attributes/:attributeId",
@@ -146,6 +153,13 @@ var routes = Routes{
 	},
 
 	{
+		"DeleteVariant",
+		http.MethodDelete,
+		"/services/:serviceId/variants/:variantId",
+		DeleteVariant,
+	},
+
+	{
 		"GetAllAttributeValues",
 		http.MethodGet,
 		"/attributes/:attributeId/values",
@@ -170,7 +184,7 @@ var routes = Routes{
 		"GetFee",
 		http.MethodGet,
 		"/services/:serviceId/variants/",
-		GetFee,
+		GetVariant,
 	},
 
 	{

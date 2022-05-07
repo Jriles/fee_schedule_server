@@ -178,6 +178,51 @@ func CreateServiceAttributeLine(c *gin.Context) {
 	}
 }
 
+func CreateVariant(c *gin.Context) {
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+
+	serviceId := c.Param("serviceId")
+	var requestBody CreateServiceVariantSchema
+	if err := c.BindJSON(&requestBody); err != nil {
+		log.Fatalln(err)
+		c.JSON(http.StatusBadRequest, gin.H{})
+	} else {
+		fee := requestBody.Fee
+		serviceAttributeValueIds := requestBody.ServiceAttributeValueIds
+		sqlStatement := `
+		INSERT INTO service_variants (service_id, fee)
+		VALUES ($1, $2)
+		RETURNING id
+		`
+		id := ""
+		err := db.QueryRow(sqlStatement, serviceId, fee).Scan(&id)
+
+		for _, attrValId := range serviceAttributeValueIds {
+			stmt, err := db.Prepare(
+				`INSERT INTO service_variant_combination
+				(service_variant_id, service_attribute_value_id) 
+				VALUES ($1, $2)`,
+			)
+			if err != nil {
+				log.Fatalln(err)
+				c.JSON(http.StatusInternalServerError, gin.H{})
+			}
+			_, err = stmt.Exec(id, attrValId)
+		}
+
+		if err != nil {
+			log.Fatalln(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+		} else {
+			successfulRes := VariantResponse{Id: id}
+			c.JSON(http.StatusOK, successfulRes)
+		}
+	}
+}
+
 // DeleteAttribute -
 func DeleteAttribute(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
@@ -280,6 +325,10 @@ func DeleteServiceAttributeLine(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, gin.H{})
 	}
+}
+
+func DeleteVariant(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 // GetAllAttributeValues -
@@ -393,7 +442,7 @@ func GetAllServices(c *gin.Context) {
 }
 
 // GetFee - Retrieve the fee and other information for a particular service variant, ie. (Amended and Restated Articles in Delaware, 1 Day)
-func GetFee(c *gin.Context) {
+func GetVariant(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
