@@ -437,7 +437,7 @@ func GetAllServices(c *gin.Context) {
 	var serviceResArr []ServiceResponse
 	for rows.Next() {
 		var serviceRes ServiceResponse
-		err := rows.Scan(&serviceRes.Id, &serviceRes.Title)
+		err := rows.Scan(&serviceRes.Title, &serviceRes.Id)
 		if err != nil {
 			log.Fatalln(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
