@@ -45,7 +45,9 @@ func NewRouter(db *sql.DB) *gin.Engine {
 	router := gin.Default()
 	router.Use(ApiMiddleware(db))
 	// TODO: TIGHTEN THIS UP. THIS IS HIGHLY INSECURE
-	router.Use(cors.Default())
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:3000"}
+	router.Use(cors.New(config))
 
 	for _, route := range routes {
 		switch route.Method {
