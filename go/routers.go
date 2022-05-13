@@ -13,6 +13,7 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,6 +44,8 @@ func ApiMiddleware(db *sql.DB) gin.HandlerFunc {
 func NewRouter(db *sql.DB) *gin.Engine {
 	router := gin.Default()
 	router.Use(ApiMiddleware(db))
+	// TODO: TIGHTEN THIS UP. THIS IS HIGHLY INSECURE
+	router.Use(cors.Default())
 
 	for _, route := range routes {
 		switch route.Method {
