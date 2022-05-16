@@ -19,9 +19,10 @@ import (
 )
 
 const (
-	attrValResArrKey = "attribute_values"
-	attrResArrKey    = "attributes"
-	serviceResArrKey = "services"
+	attrValResArrKey      = "attribute_values"
+	attrResArrKey         = "attributes"
+	serviceResArrKey      = "services"
+	serviceVariantsArrKey = "service_variants"
 )
 
 // CreateAttribute -
@@ -401,7 +402,7 @@ func GetAllAttributes(c *gin.Context) {
 	var attrResArr []AttributeResponse
 	for rows.Next() {
 		var attrRes AttributeResponse
-		err := rows.Scan(&attrRes.Id, &attrRes.Title)
+		err := rows.Scan(&attrRes.Title, &attrRes.Id)
 		if err != nil {
 			log.Fatalln(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
@@ -458,39 +459,64 @@ func GetAllServices(c *gin.Context) {
 }
 
 // GetFee - Retrieve the fee and other information for a particular service variant, ie. (Amended and Restated Articles in Delaware, 1 Day)
-func GetVariant(c *gin.Context) {
+func GetVariants(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
-	var variantResponse VariantResponse
+	var variantsResponse []VariantResponse
 	serviceAttributeValueIds := c.Request.URL.Query()["serviceAttributeValueIds[]"]
 	combinationLen := len(serviceAttributeValueIds)
-	serviceAttributeValueIdsPqArr := pq.Array(serviceAttributeValueIds)
+	if combinationLen > 0 {
+		var variantResponse VariantResponse
+		serviceAttributeValueIdsPqArr := pq.Array(serviceAttributeValueIds)
 
-	combinationErr := db.QueryRow(
-		`SELECT service_variant_id
-		FROM service_variant_combination 
-		WHERE service_attribute_value_id = ANY($1) 
-		GROUP BY service_variant_id HAVING COUNT(*) >= $2
-		`,
-		serviceAttributeValueIdsPqArr, combinationLen).Scan(
-		&variantResponse.Id,
-	)
-	if combinationErr != nil {
-		log.Fatalln(combinationErr)
-		c.JSON(http.StatusInternalServerError, gin.H{})
-	}
+		combinationErr := db.QueryRow(
+			`SELECT service_variant_id
+			FROM service_variant_combination 
+			WHERE service_attribute_value_id = ANY($1) 
+			GROUP BY service_variant_id HAVING COUNT(*) >= $2
+			`,
+			serviceAttributeValueIdsPqArr, combinationLen).Scan(
+			&variantResponse.Id,
+		)
+		if combinationErr != nil {
+			log.Fatalln(combinationErr)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+		}
 
-	variantErr := db.QueryRow(
-		"SELECT fee FROM service_variants WHERE id=$1",
-		variantResponse.Id).Scan(&variantResponse.Fee)
-	if variantErr != nil {
-		log.Fatalln(variantErr)
-		c.JSON(http.StatusInternalServerError, gin.H{})
+		variantErr := db.QueryRow(
+			"SELECT fee FROM service_variants WHERE id=$1",
+			variantResponse.Id).Scan(&variantResponse.Fee)
+
+		if variantErr != nil {
+			log.Fatalln(variantErr)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+		}
+		variantsResponse = append(variantsResponse, variantResponse)
 	} else {
-		c.JSON(http.StatusOK, variantResponse)
+		rows, err := db.Query(
+			"SELECT * FROM service_variants")
+		if err != nil {
+			log.Fatalln(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+		}
+
+		for rows.Next() {
+			var variantRes VariantResponse
+			err := rows.Scan(&variantRes.Id, &variantRes.ServiceId, &variantRes.Fee)
+			if err != nil {
+				log.Fatalln(err)
+				c.JSON(http.StatusInternalServerError, gin.H{})
+			} else {
+				variantsResponse = append(variantsResponse, variantRes)
+			}
+		}
 	}
+
+	c.JSON(http.StatusOK, gin.H{
+		serviceVariantsArrKey: variantsResponse,
+	})
 }
 
 // GetService -

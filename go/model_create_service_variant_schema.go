@@ -11,6 +11,8 @@ package fee_schedule_server
 
 type CreateServiceVariantSchema struct {
 
+	ServiceId string `json:"serviceId"`
+
 	Fee float32 `json:"fee"`
 
 	ServiceAttributeValueIds []string `json:"serviceAttributeValueIds"`

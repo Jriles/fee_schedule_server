@@ -336,18 +336,10 @@ paths:
           description: Created
       summary: Create an attribute line for a service. This is how we relate attribute
         values to services.
-  /services/{serviceId}/attribute_lines/{lineId}:
+  /service_attribute_lines/{lineId}:
     delete:
       operationId: deleteServiceAttributeLine
       parameters:
-      - explode: false
-        in: path
-        name: serviceId
-        required: true
-        schema:
-          title: ServiceId
-          type: string
-        style: simple
       - explode: false
         in: path
         name: lineId
@@ -360,21 +352,13 @@ paths:
         "204":
           description: Deleted
       summary: Delete a service attribute line.
-  /services/{serviceId}/attribute_lines/{lineId}/values:
+  /service_attribute_lines/{lineId}/values:
     description: This endpoint supports CRD on the allowed values for a service. Think
       1 day or 2 day or 3 day for filing speed attribute on Ammended and Restated
       articles.
     get:
       operationId: getServiceAttrVals
       parameters:
-      - explode: false
-        in: path
-        name: serviceId
-        required: true
-        schema:
-          title: ServiceId
-          type: string
-        style: simple
       - explode: false
         in: path
         name: lineId
@@ -397,14 +381,6 @@ paths:
     post:
       operationId: createServiceAttributeValue
       parameters:
-      - explode: false
-        in: path
-        name: serviceId
-        required: true
-        schema:
-          title: ServiceId
-          type: string
-        style: simple
       - explode: false
         in: path
         name: lineId
@@ -433,26 +409,10 @@ paths:
           description: Created
       summary: create a new service attribute value (not an attribute value.) This
         only applies to the service listed in the path.
-  /services/{serviceId}/attribute_lines/{lineId}/values/{valueId}:
+  /services_attribute_values/{valueId}:
     delete:
       operationId: deleteServiceAttributeValue
       parameters:
-      - explode: false
-        in: path
-        name: serviceId
-        required: true
-        schema:
-          title: ServiceId
-          type: string
-        style: simple
-      - explode: false
-        in: path
-        name: lineId
-        required: true
-        schema:
-          title: LineId
-          type: string
-        style: simple
       - explode: false
         in: path
         name: valueId
@@ -466,24 +426,16 @@ paths:
           description: Deleted
       summary: Delete a service attribute value. valueId here is the service attribute
         value id NOT the attribute value id.
-  /services/{serviceId}/variants/:
+  /service_variants/:
     get:
-      operationId: getVariant
+      operationId: getVariants
       parameters:
-      - explode: false
-        in: path
-        name: serviceId
-        required: true
-        schema:
-          title: ServiceId
-          type: string
-        style: simple
       - description: This param is an array of strings where the strings are the service
           attribute value ids.
         explode: true
         in: query
         name: serviceAttributeValueIds[]
-        required: true
+        required: false
         schema:
           items:
             type: string
@@ -497,19 +449,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/VariantResponse'
           description: OK
-      summary: Retrieve the fee and other information for a particular service variant,
-        ie. (Amended and Restated Articles in Delaware, 1 Day)
+      summary: Retrieve the variant (fee and other information) for a particular service
+        variant, ie. (Amended and Restated Articles in Delaware, 1 Day)
     post:
       operationId: createVariant
-      parameters:
-      - explode: false
-        in: path
-        name: serviceId
-        required: true
-        schema:
-          title: ServiceId
-          type: string
-        style: simple
       requestBody:
         $ref: '#/components/requestBodies/CreateServiceVariantSchema'
         content:
@@ -520,7 +463,10 @@ paths:
                 - serviceAttributeValueIds
                 - serviceAttributeValueIds
                 fee: 0.8008281904610115
+                serviceId: serviceId
               properties:
+                serviceId:
+                  type: string
                 fee:
                   type: number
                 serviceAttributeValueIds:
@@ -530,6 +476,7 @@ paths:
               required:
               - fee
               - serviceAttributeValueIds
+              - serviceId
               title: CreateServiceVariantSchema
               type: object
         required: true
@@ -544,18 +491,10 @@ paths:
           description: Created
       summary: Create a variant for a service with a specific combination of Jurisdiction,
         Filing Speed and Entity type.
-  /services/{serviceId}/variants/{variantId}:
+  /services_variants/{variantId}:
     delete:
       operationId: deleteVariant
       parameters:
-      - explode: false
-        in: path
-        name: serviceId
-        required: true
-        schema:
-          title: ServiceId
-          type: string
-        style: simple
       - explode: false
         in: path
         name: variantId
@@ -568,6 +507,26 @@ paths:
         "204":
           description: Deleted
       summary: Delete a service variant.
+  /services/{serviceId}/variants/:
+    get:
+      operationId: getServiceVariants
+      parameters:
+      - explode: false
+        in: path
+        name: serviceId
+        required: true
+        schema:
+          title: ServiceId
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1service_variants~1/get/responses/200/content/application~1json/schema'
+          description: OK
+      summary: Get all variants for a particular service.
 components:
   requestBodies:
     UpdateAttributeValueSchema:
@@ -752,14 +711,18 @@ components:
       example:
         fee: 0.8008281904610115
         id: id
+        serviceId: serviceId
       properties:
         id:
           type: string
         fee:
           type: number
+        serviceId:
+          type: string
       required:
       - fee
       - id
+      - serviceId
       title: VariantResponse
       type: object
     AttributeResponse:
@@ -790,7 +753,10 @@ components:
         - serviceAttributeValueIds
         - serviceAttributeValueIds
         fee: 0.8008281904610115
+        serviceId: serviceId
       properties:
+        serviceId:
+          type: string
         fee:
           type: number
         serviceAttributeValueIds:
@@ -800,5 +766,6 @@ components:
       required:
       - fee
       - serviceAttributeValueIds
+      - serviceId
       title: CreateServiceVariantSchema
       type: object

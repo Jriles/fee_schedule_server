@@ -104,7 +104,7 @@ var routes = Routes{
 	{
 		"CreateServiceAttributeValue",
 		http.MethodPost,
-		"/services/:serviceId/attribute_lines/:lineId/values",
+		"/service_attribute_lines/:lineId/values",
 		CreateServiceAttributeValue,
 	},
 
@@ -118,7 +118,7 @@ var routes = Routes{
 	{
 		"CreateVariant",
 		http.MethodPost,
-		"/services/:serviceId/variants",
+		"/service_variants",
 		CreateVariant,
 	},
 
@@ -132,7 +132,7 @@ var routes = Routes{
 	{
 		"DeleteAttributeValue",
 		http.MethodDelete,
-		"/attributes/:attributeId/values/:valueId",
+		"/attribute_values/:valueId",
 		DeleteAttributeValue,
 	},
 
@@ -146,21 +146,21 @@ var routes = Routes{
 	{
 		"DeleteServiceAttributeValue",
 		http.MethodDelete,
-		"/services/:serviceId/attribute_lines/:lineId/values/:valueId",
+		"/service_attribute_values/:valueId",
 		DeleteServiceAttributeValue,
 	},
 
 	{
 		"DeleteServiceAttributeLine",
 		http.MethodDelete,
-		"/services/:serviceId/attribute_lines/:lineId",
+		"/service_attribute_lines/:lineId",
 		DeleteServiceAttributeLine,
 	},
 
 	{
 		"DeleteVariant",
 		http.MethodDelete,
-		"/services/:serviceId/variants/:variantId",
+		"/service_variants/:variantId",
 		DeleteVariant,
 	},
 
@@ -186,10 +186,10 @@ var routes = Routes{
 	},
 
 	{
-		"GetFee",
+		"GetVariants",
 		http.MethodGet,
-		"/services/:serviceId/variants/",
-		GetVariant,
+		"/service_variants/",
+		GetVariants,
 	},
 
 	{
@@ -216,7 +216,7 @@ var routes = Routes{
 	{
 		"UpdateAttributeValue",
 		http.MethodPatch,
-		"/attributes/:attributeId/values/:valueId",
+		"/attribute_values/:valueId",
 		UpdateAttributeValue,
 	},
 
