@@ -156,26 +156,20 @@ func CreateServiceAttributeLine(c *gin.Context) {
 	}
 
 	serviceId := c.Param("serviceId")
-	var requestBody CreateServiceAttributeLineSchema
-	if err := c.BindJSON(&requestBody); err != nil {
+	attributeId := c.Param("attributeId")
+	sqlStatement := `
+	INSERT INTO service_attribute_lines (service_id, attribute_id)
+	VALUES ($1, $2)
+	RETURNING id
+	`
+	id := ""
+	err := db.QueryRow(sqlStatement, serviceId, attributeId).Scan(&id)
+	if err != nil {
 		log.Fatalln(err)
-		c.JSON(http.StatusBadRequest, gin.H{})
+		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
-		attributeId := requestBody.AttributeId
-		sqlStatement := `
-		INSERT INTO service_attribute_lines (service_id, attribute_id)
-		VALUES ($1, $2)
-		RETURNING id
-		`
-		id := ""
-		err := db.QueryRow(sqlStatement, serviceId, attributeId).Scan(&id)
-		if err != nil {
-			log.Fatalln(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-		} else {
-			successfulRes := AttributeResponse{Id: id}
-			c.JSON(http.StatusCreated, successfulRes)
-		}
+		successfulRes := AttributeResponse{Id: id}
+		c.JSON(http.StatusCreated, successfulRes)
 	}
 }
 
@@ -540,6 +534,29 @@ func GetService(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusOK, serviceRes)
+	}
+}
+
+func GetServiceAttrLine(c *gin.Context) {
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	serviceId := c.Param("serviceId")
+	attributeId := c.Param("attributeId")
+	// get the line's ID
+	var serviceAttrLineRes ServiceAttributeLineResponse
+	err := db.QueryRow(
+		"SELECT * FROM service_attribute_lines WHERE service_id=$1 AND attribute_id=$2",
+		serviceId,
+		attributeId,
+	).Scan(&serviceAttrLineRes.Id, &serviceId, &attributeId)
+
+	if err != nil {
+		log.Fatalln(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, serviceAttrLineRes)
 	}
 }
 

@@ -111,7 +111,7 @@ var routes = Routes{
 	{
 		"CreateServiceAttributeLine",
 		http.MethodPost,
-		"/services/:serviceId/attribute_lines",
+		"/services/:serviceId/attributes/:attributeId/lines",
 		CreateServiceAttributeLine,
 	},
 
@@ -200,9 +200,16 @@ var routes = Routes{
 	},
 
 	{
+		"GetServiceAttrLine",
+		http.MethodGet,
+		"/services/:serviceId/attributes/:attributeId/lines",
+		GetServiceAttrLine,
+	},
+
+	{
 		"GetServiceAttrVals",
 		http.MethodGet,
-		"/services/:serviceId/attribute_lines/:lineId/values",
+		"/service_attribute_lines/:lineId/values",
 		GetServiceAttrLineVals,
 	},
 

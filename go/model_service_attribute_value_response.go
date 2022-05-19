@@ -13,5 +13,5 @@ type ServiceAttributeValueResponse struct {
 
 	Id string `json:"id"`
 
-	ValueTitle string `json:"valueTitle"`
+	ValueTitle string `json:"value_title"`
 }

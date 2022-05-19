@@ -242,19 +242,11 @@ paths:
       responses:
         "201":
           description: Created
-  /attributes/{attributeId}/values/{valueId}:
+  /attribute_values/{valueId}:
     delete:
       description: Delete an attribute value.
       operationId: deleteAttributeValue
       parameters:
-      - explode: false
-        in: path
-        name: attributeId
-        required: true
-        schema:
-          title: AttributeId
-          type: string
-        style: simple
       - explode: false
         in: path
         name: valueId
@@ -271,14 +263,6 @@ paths:
       description: Update an attribute value.
       operationId: updateAttributeValue
       parameters:
-      - explode: false
-        in: path
-        name: attributeId
-        required: true
-        schema:
-          title: AttributeId
-          type: string
-        style: simple
       - explode: false
         in: path
         name: valueId
@@ -303,7 +287,35 @@ paths:
       responses:
         "204":
           description: Updated
-  /services/{serviceId}/attribute_lines:
+  /services/{serviceId}/attributes/{attributeId}/lines:
+    get:
+      operationId: getServiceAttribtuteLine
+      parameters:
+      - explode: false
+        in: path
+        name: serviceId
+        required: true
+        schema:
+          title: ServiceId
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: attributeId
+        required: true
+        schema:
+          title: AttributeId
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceAttributeLineResponse'
+          description: Success
+      summary: Given a service id and an attribute id, return the service attribute
+        line for that combination
     post:
       operationId: createServiceAttributeLine
       parameters:
@@ -315,22 +327,14 @@ paths:
           title: ServiceId
           type: string
         style: simple
-      requestBody:
-        $ref: '#/components/requestBodies/CreateServiceAttributeLineSchema'
-        content:
-          application/json:
-            schema:
-              example:
-                attributeId: attributeId
-              properties:
-                attributeId:
-                  description: this refers to the high-level attributes
-                  type: string
-              required:
-              - attributeId
-              title: CreateServiceAttributeLineSchema
-              type: object
+      - explode: false
+        in: path
+        name: attributeId
         required: true
+        schema:
+          title: AttributeId
+          type: string
+        style: simple
       responses:
         "201":
           description: Created
@@ -450,7 +454,9 @@ paths:
                 $ref: '#/components/schemas/VariantResponse'
           description: OK
       summary: Retrieve the variant (fee and other information) for a particular service
-        variant, ie. (Amended and Restated Articles in Delaware, 1 Day)
+        variant, ie. (Amended and Restated Articles in Delaware, 1 Day). If you provide
+        no values for the serviceAttribute Values then you will recieve a list of
+        all service variants.
     post:
       operationId: createVariant
       requestBody:
@@ -491,7 +497,7 @@ paths:
           description: Created
       summary: Create a variant for a service with a specific combination of Jurisdiction,
         Filing Speed and Entity type.
-  /services_variants/{variantId}:
+  /service_variants/{variantId}:
     delete:
       operationId: deleteVariant
       parameters:
@@ -571,12 +577,6 @@ components:
           schema:
             $ref: '#/components/schemas/UpdateServiceSchema'
       required: true
-    CreateServiceAttributeLineSchema:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/CreateServiceAttributeLineSchema'
-      required: true
     CreateServiceVariantSchema:
       content:
         application/json:
@@ -584,6 +584,16 @@ components:
             $ref: '#/components/schemas/CreateServiceVariantSchema'
       required: true
   schemas:
+    ServiceAttributeLineResponse:
+      example:
+        id: id
+      properties:
+        id:
+          type: string
+      required:
+      - id
+      title: ServiceAttributeLineResponse
+      type: object
     UpdateAttributeValueSchema:
       example:
         title: title
@@ -648,17 +658,6 @@ components:
       - title
       title: AttributeValueResponse
       type: object
-    CreateServiceAttributeLineSchema:
-      example:
-        attributeId: attributeId
-      properties:
-        attributeId:
-          description: this refers to the high-level attributes
-          type: string
-      required:
-      - attributeId
-      title: CreateServiceAttributeLineSchema
-      type: object
     VariantCreatedResponse:
       example:
         id: id
@@ -695,16 +694,16 @@ components:
       type: object
     ServiceAttributeValueResponse:
       example:
+        value_title: value_title
         id: id
-        valueTitle: valueTitle
       properties:
         id:
           type: string
-        valueTitle:
+        value_title:
           type: string
       required:
       - id
-      - valueTitle
+      - value_title
       title: ServiceAttributeValueResponse
       type: object
     VariantResponse:
