@@ -200,6 +200,13 @@ var routes = Routes{
 	},
 
 	{
+		"GetServiceAttributeLines",
+		http.MethodGet,
+		"/services/:serviceId/attribute_lines",
+		GetServiceAttrLines,
+	},
+
+	{
 		"GetServiceAttrLine",
 		http.MethodGet,
 		"/services/:serviceId/attributes/:attributeId/lines",

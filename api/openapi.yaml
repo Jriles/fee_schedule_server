@@ -4,7 +4,7 @@ info:
   title: CorpFees
   version: 1.0.0
 servers:
-- url: http://localhost:3000/
+- url: http://localhost:8080/
 paths:
   /services:
     get:
@@ -340,6 +340,28 @@ paths:
           description: Created
       summary: Create an attribute line for a service. This is how we relate attribute
         values to services.
+  /services/{serviceId}/attribute_lines:
+    get:
+      operationId: getServiceAttributeLines
+      parameters:
+      - explode: false
+        in: path
+        name: serviceId
+        required: true
+        schema:
+          title: ServiceId
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/paths/~1services~1%7BserviceId%7D~1attributes~1%7BattributeId%7D~1lines/get/responses/200/content/application~1json/schema'
+                type: array
+          description: Success
+      summary: Given a service id, return the all service attribute lines.
   /service_attribute_lines/{lineId}:
     delete:
       operationId: deleteServiceAttributeLine
@@ -377,7 +399,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/ServiceAttributeValueResponse'
+                  $ref: '#/paths/~1services~1%7BserviceId%7D~1attributes~1%7BattributeId%7D~1lines/get/responses/200/content/application~1json/schema/properties/service_attribute_values/items'
                 type: array
           description: Created
       summary: Get all the service attribute values for a particular service attribute
@@ -586,12 +608,25 @@ components:
   schemas:
     ServiceAttributeLineResponse:
       example:
+        attribute_title: attribute_title
         id: id
+        service_attribute_values:
+        - value_title: value_title
+          id: id
+        - value_title: value_title
+          id: id
       properties:
         id:
           type: string
+        attribute_title:
+          type: string
+        service_attribute_values:
+          items:
+            $ref: '#/components/schemas/service_attribute_value'
+          type: array
       required:
       - id
+      - service_attribute_values
       title: ServiceAttributeLineResponse
       type: object
     UpdateAttributeValueSchema:
@@ -658,6 +693,20 @@ components:
       - title
       title: AttributeValueResponse
       type: object
+    service_attribute_value:
+      example:
+        value_title: value_title
+        id: id
+      properties:
+        id:
+          type: string
+        value_title:
+          type: string
+      required:
+      - id
+      - value_title
+      title: service_attribute_value
+      type: object
     VariantCreatedResponse:
       example:
         id: id
@@ -691,20 +740,6 @@ components:
       required:
       - title
       title: CreateServiceSchema
-      type: object
-    ServiceAttributeValueResponse:
-      example:
-        value_title: value_title
-        id: id
-      properties:
-        id:
-          type: string
-        value_title:
-          type: string
-      required:
-      - id
-      - value_title
-      title: ServiceAttributeValueResponse
       type: object
     VariantResponse:
       example:

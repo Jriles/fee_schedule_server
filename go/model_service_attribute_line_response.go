@@ -12,4 +12,8 @@ package fee_schedule_server
 type ServiceAttributeLineResponse struct {
 
 	Id string `json:"id"`
+
+	AttributeTitle string `json:"attribute_title,omitempty"`
+
+	ServiceAttributeValues []ServiceAttributeValue `json:"service_attribute_values"`
 }

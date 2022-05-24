@@ -23,6 +23,7 @@ const (
 	attrResArrKey         = "attributes"
 	serviceResArrKey      = "services"
 	serviceVariantsArrKey = "service_variants"
+	serviceLinesKey       = "service_lines"
 )
 
 // CreateAttribute -
@@ -34,7 +35,7 @@ func CreateAttribute(c *gin.Context) {
 
 	var requestBody Attribute
 	if err := c.BindJSON(&requestBody); err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
 		title := requestBody.Title
@@ -46,7 +47,7 @@ func CreateAttribute(c *gin.Context) {
 		id := ""
 		err := db.QueryRow(sqlStatement, title).Scan(&id)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			successfulRes := AttributeResponse{Id: id}
@@ -65,7 +66,7 @@ func CreateAttributeValue(c *gin.Context) {
 	var requestBody AttributeValue
 	attributeId := c.Param("attributeId")
 	if err := c.BindJSON(&requestBody); err != nil || attributeId == "" {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
 		title := requestBody.Title
@@ -77,7 +78,7 @@ func CreateAttributeValue(c *gin.Context) {
 		id := ""
 		err := db.QueryRow(sqlStatement, title, attributeId).Scan(&id)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			successfulRes := AttributeResponse{Id: id}
@@ -95,7 +96,7 @@ func CreateService(c *gin.Context) {
 
 	var requestBody CreateServiceSchema
 	if err := c.BindJSON(&requestBody); err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
 		title := requestBody.Title
@@ -107,7 +108,7 @@ func CreateService(c *gin.Context) {
 		id := ""
 		err := db.QueryRow(sqlStatement, title).Scan(&id)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			successfulRes := CreateServiceResponse{Id: id}
@@ -125,7 +126,7 @@ func CreateServiceAttributeValue(c *gin.Context) {
 
 	var requestBody CreateServiceAttributeValueSchema
 	if err := c.BindJSON(&requestBody); err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
 		lineId := c.Param("lineId")
@@ -140,7 +141,7 @@ func CreateServiceAttributeValue(c *gin.Context) {
 		id := ""
 		err := db.QueryRow(sqlStatement, lineId, attributeValueId).Scan(&id)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			successfulRes := CreateServiceResponse{Id: id}
@@ -165,7 +166,7 @@ func CreateServiceAttributeLine(c *gin.Context) {
 	id := ""
 	err := db.QueryRow(sqlStatement, serviceId, attributeId).Scan(&id)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		successfulRes := AttributeResponse{Id: id}
@@ -182,7 +183,7 @@ func CreateVariant(c *gin.Context) {
 	serviceId := c.Param("serviceId")
 	var requestBody CreateServiceVariantSchema
 	if err := c.BindJSON(&requestBody); err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
 		fee := requestBody.Fee
@@ -202,14 +203,14 @@ func CreateVariant(c *gin.Context) {
 				VALUES ($1, $2)`,
 			)
 			if err != nil {
-				log.Fatalln(err)
+				log.Print(err)
 				c.JSON(http.StatusInternalServerError, gin.H{})
 			}
 			_, err = stmt.Exec(id, attrValId)
 		}
 
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			successfulRes := VariantCreatedResponse{Id: id}
@@ -227,12 +228,12 @@ func DeleteAttribute(c *gin.Context) {
 	attributeId := c.Param("attributeId")
 	stmt, err := db.Prepare("DELETE FROM attributes WHERE id=$1")
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 	_, err = stmt.Exec(attributeId)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusNoContent, gin.H{})
@@ -248,12 +249,12 @@ func DeleteAttributeValue(c *gin.Context) {
 	valueID := c.Param("valueId")
 	stmt, err := db.Prepare("DELETE FROM attribute_values WHERE id=$1")
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 	_, err = stmt.Exec(valueID)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusNoContent, gin.H{})
@@ -269,12 +270,12 @@ func DeleteService(c *gin.Context) {
 	serviceId := c.Param("serviceId")
 	stmt, err := db.Prepare("DELETE FROM services WHERE id=$1")
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 	_, err = stmt.Exec(serviceId)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusNoContent, gin.H{})
@@ -290,12 +291,12 @@ func DeleteServiceAttributeValue(c *gin.Context) {
 	valueId := c.Param("valueId")
 	stmt, err := db.Prepare("DELETE FROM service_attribute_values WHERE id=$1")
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 	_, err = stmt.Exec(valueId)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusNoContent, gin.H{})
@@ -310,12 +311,12 @@ func DeleteServiceAttributeLine(c *gin.Context) {
 	lineId := c.Param("lineId")
 	stmt, err := db.Prepare("DELETE FROM service_attribute_lines WHERE id=$1")
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 	_, err = stmt.Exec(lineId)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusNoContent, gin.H{})
@@ -330,12 +331,12 @@ func DeleteVariant(c *gin.Context) {
 	variantId := c.Param("variantId")
 	stmt, err := db.Prepare("DELETE FROM service_variants WHERE id=$1")
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 	_, err = stmt.Exec(variantId)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusNoContent, gin.H{})
@@ -353,7 +354,7 @@ func GetAllAttributeValues(c *gin.Context) {
 		"SELECT * FROM attribute_values WHERE attribute_id=$1",
 		attributeId)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 
@@ -363,7 +364,7 @@ func GetAllAttributeValues(c *gin.Context) {
 		var attrId string
 		err := rows.Scan(&attrValRes.Id, &attrValRes.Title, &attrId)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		}
 		attrValResArr = append(attrValResArr, attrValRes)
@@ -371,7 +372,7 @@ func GetAllAttributeValues(c *gin.Context) {
 
 	defer rows.Close()
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusOK, gin.H{
@@ -389,7 +390,7 @@ func GetAllAttributes(c *gin.Context) {
 	rows, err := db.Query(
 		"SELECT * FROM attributes")
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 
@@ -398,7 +399,7 @@ func GetAllAttributes(c *gin.Context) {
 		var attrRes AttributeResponse
 		err := rows.Scan(&attrRes.Title, &attrRes.Id)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			attrResArr = append(attrResArr, attrRes)
@@ -407,7 +408,7 @@ func GetAllAttributes(c *gin.Context) {
 
 	defer rows.Close()
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusOK, gin.H{
@@ -425,7 +426,7 @@ func GetAllServices(c *gin.Context) {
 	rows, err := db.Query(
 		"SELECT * FROM services")
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 
@@ -434,7 +435,7 @@ func GetAllServices(c *gin.Context) {
 		var serviceRes ServiceResponse
 		err := rows.Scan(&serviceRes.Title, &serviceRes.Id)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			serviceResArr = append(serviceResArr, serviceRes)
@@ -443,7 +444,7 @@ func GetAllServices(c *gin.Context) {
 
 	defer rows.Close()
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusOK, gin.H{
@@ -475,7 +476,7 @@ func GetVariants(c *gin.Context) {
 			&variantResponse.Id,
 		)
 		if combinationErr != nil {
-			log.Fatalln(combinationErr)
+			log.Print(combinationErr)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		}
 
@@ -484,7 +485,7 @@ func GetVariants(c *gin.Context) {
 			variantResponse.Id).Scan(&variantResponse.Fee)
 
 		if variantErr != nil {
-			log.Fatalln(variantErr)
+			log.Print(variantErr)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		}
 		variantsResponse = append(variantsResponse, variantResponse)
@@ -492,7 +493,7 @@ func GetVariants(c *gin.Context) {
 		rows, err := db.Query(
 			"SELECT * FROM service_variants")
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		}
 
@@ -500,7 +501,7 @@ func GetVariants(c *gin.Context) {
 			var variantRes VariantResponse
 			err := rows.Scan(&variantRes.Id, &variantRes.ServiceId, &variantRes.Fee)
 			if err != nil {
-				log.Fatalln(err)
+				log.Print(err)
 				c.JSON(http.StatusInternalServerError, gin.H{})
 			} else {
 				variantsResponse = append(variantsResponse, variantRes)
@@ -525,12 +526,12 @@ func GetService(c *gin.Context) {
 		"SELECT * FROM services WHERE id=$1",
 		serviceId).Scan(&serviceRes.Id, &serviceRes.Title)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusOK, serviceRes)
@@ -553,11 +554,92 @@ func GetServiceAttrLine(c *gin.Context) {
 	).Scan(&serviceAttrLineRes.Id, &serviceId, &attributeId)
 
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusOK, serviceAttrLineRes)
 	}
+}
+
+func GetServiceAttrLines(c *gin.Context) {
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	serviceId := c.Param("serviceId")
+	lines, err := db.Query(
+		"SELECT * FROM service_attribute_lines WHERE service_id=$1",
+		serviceId,
+	)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+	}
+
+	var linesRes []ServiceAttributeLineResponse
+	for lines.Next() {
+		var lineRes ServiceAttributeLineResponse
+		var serviceId string
+		var attrId string
+		err := lines.Scan(&lineRes.Id, &serviceId, &attrId)
+		if err != nil {
+			log.Print(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+		} else {
+			err := db.QueryRow(
+				"SELECT * FROM attributes WHERE id=$1",
+				attrId).Scan(&lineRes.AttributeTitle, &attrId)
+
+			serviceAttrVals, err := db.Query(
+				"SELECT attribute_value_id FROM service_attribute_values WHERE line_id=$1",
+				lineRes.Id,
+			)
+			if err != nil {
+				log.Print(err)
+				c.JSON(http.StatusInternalServerError, gin.H{})
+			}
+
+			var attrValIds []string
+			for serviceAttrVals.Next() {
+				var attrValId string
+				err := serviceAttrVals.Scan(&attrValId)
+				if err != nil {
+					log.Print(err)
+					c.JSON(http.StatusInternalServerError, gin.H{})
+				} else {
+					attrValIds = append(attrValIds, attrValId)
+				}
+			}
+
+			rows, err := db.Query(
+				"SELECT * FROM attribute_values WHERE id = ANY($1)",
+				pq.Array(attrValIds),
+			)
+			if err != nil {
+				log.Print(err)
+				c.JSON(http.StatusInternalServerError, gin.H{})
+			}
+
+			var serviceAttrValResArr []ServiceAttributeValue
+			for rows.Next() {
+				var attrValRes ServiceAttributeValue
+				var attrId string
+				err := rows.Scan(&attrValRes.Id, &attrValRes.ValueTitle, &attrId)
+				if err != nil {
+					log.Print(err)
+					c.JSON(http.StatusInternalServerError, gin.H{})
+				} else {
+					serviceAttrValResArr = append(serviceAttrValResArr, attrValRes)
+				}
+			}
+			lineRes.ServiceAttributeValues = serviceAttrValResArr
+			linesRes = append(linesRes, lineRes)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		serviceLinesKey: linesRes,
+	})
 }
 
 // GetServiceAttrVals - Get all the service attribute values for a particular service attr line.
@@ -572,7 +654,7 @@ func GetServiceAttrLineVals(c *gin.Context) {
 		lineId,
 	)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 	var attrValIds []string
@@ -580,7 +662,7 @@ func GetServiceAttrLineVals(c *gin.Context) {
 		var attrValId string
 		err := serviceAttrVals.Scan(&attrValId)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			attrValIds = append(attrValIds, attrValId)
@@ -592,7 +674,7 @@ func GetServiceAttrLineVals(c *gin.Context) {
 		pq.Array(attrValIds),
 	)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 
@@ -601,7 +683,7 @@ func GetServiceAttrLineVals(c *gin.Context) {
 		var attrValRes AttributeValueResponse
 		err := rows.Scan(&attrValRes.Id, &attrValRes.Title, &attrValRes.AttributeId)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			attrValResArr = append(attrValResArr, attrValRes)
@@ -610,7 +692,7 @@ func GetServiceAttrLineVals(c *gin.Context) {
 
 	defer rows.Close()
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	} else {
 		c.JSON(http.StatusOK, gin.H{
@@ -631,7 +713,7 @@ func UpdateAttribute(c *gin.Context) {
 	attributeId := c.Param("attributeId")
 	var requestBody Attribute
 	if err := c.BindJSON(&requestBody); err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
 		title := requestBody.Title
@@ -639,12 +721,12 @@ func UpdateAttribute(c *gin.Context) {
 			"UPDATE attributes SET title = $1 WHERE id = $2",
 		)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		}
 		_, err = stmt.Exec(title, attributeId)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			c.JSON(http.StatusNoContent, gin.H{})
@@ -661,7 +743,7 @@ func UpdateAttributeValue(c *gin.Context) {
 	attrValId := c.Param("valueId")
 	var requestBody AttributeValue
 	if err := c.BindJSON(&requestBody); err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
 		title := requestBody.Title
@@ -669,12 +751,12 @@ func UpdateAttributeValue(c *gin.Context) {
 			"UPDATE attribute_values SET title = $1 WHERE id = $2",
 		)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		}
 		_, err = stmt.Exec(title, attrValId)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			c.JSON(http.StatusNoContent, gin.H{})
@@ -691,7 +773,7 @@ func UpdateService(c *gin.Context) {
 	serviceId := c.Param("serviceId")
 	var requestBody Attribute
 	if err := c.BindJSON(&requestBody); err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
 		title := requestBody.Title
@@ -699,12 +781,12 @@ func UpdateService(c *gin.Context) {
 			"UPDATE services SET title = $1 WHERE id = $2",
 		)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		}
 		_, err = stmt.Exec(title, serviceId)
 		if err != nil {
-			log.Fatalln(err)
+			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 		} else {
 			c.JSON(http.StatusNoContent, gin.H{})
