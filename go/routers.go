@@ -118,7 +118,7 @@ var routes = Routes{
 	{
 		"CreateVariant",
 		http.MethodPost,
-		"/service_variants",
+		"/service_variants/",
 		CreateVariant,
 	},
 

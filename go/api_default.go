@@ -180,13 +180,13 @@ func CreateVariant(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 	}
 
-	serviceId := c.Param("serviceId")
 	var requestBody CreateServiceVariantSchema
 	if err := c.BindJSON(&requestBody); err != nil {
 		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 	} else {
 		fee := requestBody.Fee
+		serviceId := requestBody.ServiceId
 		serviceAttributeValueIds := requestBody.ServiceAttributeValueIds
 		sqlStatement := `
 		INSERT INTO service_variants (service_id, fee)
@@ -207,6 +207,12 @@ func CreateVariant(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{})
 			}
 			_, err = stmt.Exec(id, attrValId)
+			if err != nil {
+				log.Print(err)
+				c.JSON(http.StatusInternalServerError, gin.H{})
+			} else {
+				c.JSON(http.StatusCreated, gin.H{})
+			}
 		}
 
 		if err != nil {
