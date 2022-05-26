@@ -469,6 +469,7 @@ func GetVariants(c *gin.Context) {
 	serviceAttributeValueIds := c.Request.URL.Query()["serviceAttributeValueIds[]"]
 	combinationLen := len(serviceAttributeValueIds)
 	if combinationLen > 0 {
+		//select a specific variant
 		var variantResponse VariantResponse
 		serviceAttributeValueIdsPqArr := pq.Array(serviceAttributeValueIds)
 
@@ -496,6 +497,7 @@ func GetVariants(c *gin.Context) {
 		}
 		variantsResponse = append(variantsResponse, variantResponse)
 	} else {
+		//SELECT ALL VARIANTS
 		rows, err := db.Query(
 			"SELECT * FROM service_variants")
 		if err != nil {
