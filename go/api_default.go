@@ -191,6 +191,7 @@ func CreateVariant(c *gin.Context) {
 		fee := requestBody.Fee
 		serviceId := requestBody.ServiceId
 		serviceAttributeValueIds := requestBody.ServiceAttributeValueIds
+
 		sqlStatement := `
 		INSERT INTO service_variants (service_id, fee)
 		VALUES ($1, $2)
@@ -198,6 +199,11 @@ func CreateVariant(c *gin.Context) {
 		`
 		id := ""
 		err := db.QueryRow(sqlStatement, serviceId, fee).Scan(&id)
+		if err != nil {
+			log.Print(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+			return
+		}
 
 		for _, serviceAttrValId := range serviceAttributeValueIds {
 			stmt, err := db.Prepare(
@@ -215,19 +221,12 @@ func CreateVariant(c *gin.Context) {
 				log.Print(err)
 				c.JSON(http.StatusInternalServerError, gin.H{})
 				return
-			} else {
-				c.JSON(http.StatusCreated, gin.H{})
 			}
+			c.JSON(http.StatusCreated, gin.H{})
 		}
 
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-			return
-		} else {
-			successfulRes := VariantCreatedResponse{Id: id}
-			c.JSON(http.StatusCreated, successfulRes)
-		}
+		successfulRes := VariantCreatedResponse{Id: id}
+		c.JSON(http.StatusCreated, successfulRes)
 	}
 }
 
