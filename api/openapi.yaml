@@ -746,24 +746,27 @@ components:
         service_attribute_vals:
         - service_attribute_vals
         - service_attribute_vals
+        service_name: service_name
         fee: 0.8008281904610115
+        service_id: service_id
         id: id
-        serviceId: serviceId
       properties:
         id:
           type: string
         fee:
           type: number
-        serviceId:
+        service_id:
           type: string
         service_attribute_vals:
           items:
             type: string
           type: array
+        service_name:
+          type: string
       required:
       - fee
       - id
-      - serviceId
+      - service_id
       title: VariantResponse
       type: object
     AttributeResponse:

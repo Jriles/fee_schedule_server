@@ -213,12 +213,12 @@ var routes = Routes{
 		GetServiceAttrLine,
 	},
 
-	{
-		"GetServiceAttrVals",
-		http.MethodGet,
-		"/service_attribute_lines/:lineId/values",
-		GetServiceAttrLineVals,
-	},
+	// {
+	// 	"GetServiceAttrVals",
+	// 	http.MethodGet,
+	// 	"/service_attribute_lines/:lineId/values",
+	// 	GetServiceAttrLineVals,
+	// },
 
 	{
 		"UpdateAttribute",
