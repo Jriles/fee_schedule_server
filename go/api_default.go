@@ -32,29 +32,31 @@ func CreateAttribute(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
 
 	var requestBody Attribute
-	if err := c.BindJSON(&requestBody); err != nil {
+	err := c.BindJSON(&requestBody)
+	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
-	} else {
-		title := requestBody.Title
-		sqlStatement := `
-		INSERT INTO attributes (title)
-		VALUES ($1)
-		RETURNING id
-		`
-		id := ""
-		err := db.QueryRow(sqlStatement, title).Scan(&id)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-		} else {
-			successfulRes := AttributeResponse{Id: id}
-			c.JSON(http.StatusCreated, successfulRes)
-		}
+		return
 	}
+	title := requestBody.Title
+	sqlStatement := `
+	INSERT INTO attributes (title)
+	VALUES ($1)
+	RETURNING id
+	`
+	id := ""
+	queryErr := db.QueryRow(sqlStatement, title).Scan(&id)
+	if queryErr != nil {
+		log.Print(queryErr)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+	successfulRes := AttributeResponse{Id: id}
+	c.JSON(http.StatusCreated, successfulRes)
 }
 
 // CreateAttributeValue -
@@ -62,30 +64,34 @@ func CreateAttributeValue(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
 
 	var requestBody AttributeValue
 	attributeId := c.Param("attributeId")
-	if err := c.BindJSON(&requestBody); err != nil || attributeId == "" {
+	err := c.BindJSON(&requestBody)
+	if err != nil || attributeId == "" {
 		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
-	} else {
-		title := requestBody.Title
-		sqlStatement := `
-		INSERT INTO attribute_values (title, attribute_id)
-		VALUES ($1, $2)
-		RETURNING id
-		`
-		id := ""
-		err := db.QueryRow(sqlStatement, title, attributeId).Scan(&id)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-		} else {
-			successfulRes := AttributeResponse{Id: id}
-			c.JSON(http.StatusCreated, successfulRes)
-		}
+		return
 	}
+
+	title := requestBody.Title
+	sqlStatement := `
+	INSERT INTO attribute_values (title, attribute_id)
+	VALUES ($1, $2)
+	RETURNING id
+	`
+	id := ""
+	queryErr := db.QueryRow(sqlStatement, title, attributeId).Scan(&id)
+	if queryErr != nil {
+		log.Print(queryErr)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	successfulRes := AttributeResponse{Id: id}
+	c.JSON(http.StatusCreated, successfulRes)
 }
 
 // CreateService -
@@ -93,29 +99,33 @@ func CreateService(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
 
 	var requestBody CreateServiceSchema
-	if err := c.BindJSON(&requestBody); err != nil {
+	err := c.BindJSON(&requestBody)
+	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
-	} else {
-		title := requestBody.Title
-		sqlStatement := `
-		INSERT INTO services (title)
-		VALUES ($1)
-		RETURNING id
-		`
-		id := ""
-		err := db.QueryRow(sqlStatement, title).Scan(&id)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-		} else {
-			successfulRes := CreateServiceResponse{Id: id}
-			c.JSON(http.StatusCreated, successfulRes)
-		}
+		return
 	}
+
+	title := requestBody.Title
+	sqlStatement := `
+	INSERT INTO services (title)
+	VALUES ($1)
+	RETURNING id
+	`
+	id := ""
+	queryErr := db.QueryRow(sqlStatement, title).Scan(&id)
+	if queryErr != nil {
+		log.Print(queryErr)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	successfulRes := CreateServiceResponse{Id: id}
+	c.JSON(http.StatusCreated, successfulRes)
 }
 
 // CreateServiceAttributeValue - create a new service attribute value (not an attribute value.) This only applies to the service listed in the path.
@@ -123,38 +133,41 @@ func CreateServiceAttributeValue(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
 
 	var requestBody CreateServiceAttributeValueSchema
-	if err := c.BindJSON(&requestBody); err != nil {
+	err := c.BindJSON(&requestBody)
+	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
-	} else {
-		lineId := c.Param("lineId")
-		attributeValueId := requestBody.AttributeValueId
-
-		sqlStatement := `
-		INSERT INTO service_attribute_values (line_id, attribute_value_id)
-		VALUES ($1, $2)
-		RETURNING id
-		`
-
-		id := ""
-		err := db.QueryRow(sqlStatement, lineId, attributeValueId).Scan(&id)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-		} else {
-			successfulRes := CreateServiceResponse{Id: id}
-			c.JSON(http.StatusCreated, successfulRes)
-		}
+		return
 	}
+
+	lineId := c.Param("lineId")
+	attributeValueId := requestBody.AttributeValueId
+	sqlStatement := `
+	INSERT INTO service_attribute_values (line_id, attribute_value_id)
+	VALUES ($1, $2)
+	RETURNING id
+	`
+	id := ""
+	queryErr := db.QueryRow(sqlStatement, lineId, attributeValueId).Scan(&id)
+	if queryErr != nil {
+		log.Print(queryErr)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	successfulRes := CreateServiceResponse{Id: id}
+	c.JSON(http.StatusCreated, successfulRes)
 }
 
 func CreateServiceAttributeLine(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
 
 	serviceId := c.Param("serviceId")
@@ -169,10 +182,10 @@ func CreateServiceAttributeLine(c *gin.Context) {
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		successfulRes := AttributeResponse{Id: id}
-		c.JSON(http.StatusCreated, successfulRes)
+		return
 	}
+	successfulRes := AttributeResponse{Id: id}
+	c.JSON(http.StatusCreated, successfulRes)
 }
 
 func CreateVariant(c *gin.Context) {
@@ -187,47 +200,47 @@ func CreateVariant(c *gin.Context) {
 		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 		return
-	} else {
-		fee := requestBody.Fee
-		serviceId := requestBody.ServiceId
-		serviceAttributeValueIds := requestBody.ServiceAttributeValueIds
+	}
 
-		sqlStatement := `
-		INSERT INTO service_variants (service_id, fee)
-		VALUES ($1, $2)
-		RETURNING id
-		`
-		id := ""
-		err := db.QueryRow(sqlStatement, serviceId, fee).Scan(&id)
+	fee := requestBody.Fee
+	serviceId := requestBody.ServiceId
+	serviceAttributeValueIds := requestBody.ServiceAttributeValueIds
+	sqlStatement := `
+	INSERT INTO service_variants (service_id, fee)
+	VALUES ($1, $2)
+	RETURNING id
+	`
+	id := ""
+	err := db.QueryRow(sqlStatement, serviceId, fee).Scan(&id)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	for _, serviceAttrValId := range serviceAttributeValueIds {
+		stmt, err := db.Prepare(
+			`INSERT INTO service_variant_combination
+			(service_variant_id, service_attribute_value_id) 
+			VALUES ($1, $2)`,
+		)
 		if err != nil {
 			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 			return
 		}
 
-		for _, serviceAttrValId := range serviceAttributeValueIds {
-			stmt, err := db.Prepare(
-				`INSERT INTO service_variant_combination
-				(service_variant_id, service_attribute_value_id) 
-				VALUES ($1, $2)`,
-			)
-			if err != nil {
-				log.Print(err)
-				c.JSON(http.StatusInternalServerError, gin.H{})
-				return
-			}
-			_, err = stmt.Exec(id, serviceAttrValId)
-			if err != nil {
-				log.Print(err)
-				c.JSON(http.StatusInternalServerError, gin.H{})
-				return
-			}
-			c.JSON(http.StatusCreated, gin.H{})
+		_, err = stmt.Exec(id, serviceAttrValId)
+		if err != nil {
+			log.Print(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+			return
 		}
-
-		successfulRes := VariantCreatedResponse{Id: id}
-		c.JSON(http.StatusCreated, successfulRes)
+		c.JSON(http.StatusCreated, gin.H{})
 	}
+
+	successfulRes := VariantCreatedResponse{Id: id}
+	c.JSON(http.StatusCreated, successfulRes)
 }
 
 // DeleteAttribute -
@@ -235,20 +248,25 @@ func DeleteAttribute(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	attributeId := c.Param("attributeId")
 	stmt, err := db.Prepare("DELETE FROM attributes WHERE id=$1")
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	_, err = stmt.Exec(attributeId)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		c.JSON(http.StatusNoContent, gin.H{})
+		return
 	}
+
+	c.JSON(http.StatusNoContent, gin.H{})
 }
 
 // DeleteAttributeValue -
@@ -256,20 +274,25 @@ func DeleteAttributeValue(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	valueID := c.Param("valueId")
 	stmt, err := db.Prepare("DELETE FROM attribute_values WHERE id=$1")
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	_, err = stmt.Exec(valueID)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		c.JSON(http.StatusNoContent, gin.H{})
+		return
 	}
+
+	c.JSON(http.StatusNoContent, gin.H{})
 }
 
 // DeleteService -
@@ -277,20 +300,25 @@ func DeleteService(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	serviceId := c.Param("serviceId")
 	stmt, err := db.Prepare("DELETE FROM services WHERE id=$1")
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	_, err = stmt.Exec(serviceId)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		c.JSON(http.StatusNoContent, gin.H{})
+		return
 	}
+
+	c.JSON(http.StatusNoContent, gin.H{})
 }
 
 // DeleteServiceAttributeValue - Delete a service attribute value. valueId here is the service attribute value id NOT the attribute value id.
@@ -298,60 +326,75 @@ func DeleteServiceAttributeValue(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	valueId := c.Param("valueId")
 	stmt, err := db.Prepare("DELETE FROM service_attribute_values WHERE id=$1")
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	_, err = stmt.Exec(valueId)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		c.JSON(http.StatusNoContent, gin.H{})
+		return
 	}
+
+	c.JSON(http.StatusNoContent, gin.H{})
 }
 
 func DeleteServiceAttributeLine(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	lineId := c.Param("lineId")
 	stmt, err := db.Prepare("DELETE FROM service_attribute_lines WHERE id=$1")
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	_, err = stmt.Exec(lineId)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		c.JSON(http.StatusNoContent, gin.H{})
+		return
 	}
+
+	c.JSON(http.StatusNoContent, gin.H{})
 }
 
 func DeleteVariant(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	variantId := c.Param("variantId")
 	stmt, err := db.Prepare("DELETE FROM service_variants WHERE id=$1")
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	_, err = stmt.Exec(variantId)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		c.JSON(http.StatusNoContent, gin.H{})
+		return
 	}
+
+	c.JSON(http.StatusNoContent, gin.H{})
 }
 
 // GetAllAttributeValues -
@@ -359,7 +402,9 @@ func GetAllAttributeValues(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	attributeId := c.Param("attributeId")
 	rows, err := db.Query(
 		"SELECT * FROM attribute_values WHERE attribute_id=$1",
@@ -367,6 +412,7 @@ func GetAllAttributeValues(c *gin.Context) {
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
 
 	var attrValResArr []AttributeValueResponse
@@ -377,6 +423,7 @@ func GetAllAttributeValues(c *gin.Context) {
 		if err != nil {
 			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
+			return
 		}
 		attrValResArr = append(attrValResArr, attrValRes)
 	}
@@ -385,11 +432,11 @@ func GetAllAttributeValues(c *gin.Context) {
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			attrValResArrKey: attrValResArr,
-		})
 	}
+
+	c.JSON(http.StatusOK, gin.H{
+		attrValResArrKey: attrValResArr,
+	})
 }
 
 // GetAllAttributes -
@@ -397,12 +444,15 @@ func GetAllAttributes(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	rows, err := db.Query(
 		"SELECT * FROM attributes")
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
 
 	var attrResArr []AttributeResponse
@@ -412,20 +462,21 @@ func GetAllAttributes(c *gin.Context) {
 		if err != nil {
 			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
-		} else {
-			attrResArr = append(attrResArr, attrRes)
+			return
 		}
+		attrResArr = append(attrResArr, attrRes)
 	}
 
 	defer rows.Close()
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			attrResArrKey: attrResArr,
-		})
+		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{
+		attrResArrKey: attrResArr,
+	})
 }
 
 // GetAllServices -
@@ -433,12 +484,15 @@ func GetAllServices(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	rows, err := db.Query(
 		"SELECT * FROM services")
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
 
 	var serviceResArr []ServiceResponse
@@ -448,20 +502,21 @@ func GetAllServices(c *gin.Context) {
 		if err != nil {
 			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
-		} else {
-			serviceResArr = append(serviceResArr, serviceRes)
+			return
 		}
+		serviceResArr = append(serviceResArr, serviceRes)
 	}
 
 	defer rows.Close()
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			serviceResArrKey: serviceResArr,
-		})
+		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{
+		serviceResArrKey: serviceResArr,
+	})
 }
 
 // GetFee - Retrieve the fee and other information for a particular service variant, ie. (Amended and Restated Articles in Delaware, 1 Day)
@@ -469,7 +524,9 @@ func GetVariants(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	var variantsResponse []VariantResponse
 	serviceAttributeValueIds := c.Request.URL.Query()["serviceAttributeValueIds[]"]
 	combinationLen := len(serviceAttributeValueIds)
@@ -491,15 +548,16 @@ func GetVariants(c *gin.Context) {
 		if combinationErr != nil {
 			log.Print(combinationErr)
 			c.JSON(http.StatusInternalServerError, gin.H{})
+			return
 		}
 
 		variantErr := db.QueryRow(
 			"SELECT fee FROM service_variants WHERE id=$1",
 			variantResponse.Id).Scan(&variantResponse.Fee)
-
 		if variantErr != nil {
 			log.Print(variantErr)
 			c.JSON(http.StatusInternalServerError, gin.H{})
+			return
 		}
 		variantsResponse = append(variantsResponse, variantResponse)
 	} else {
@@ -551,7 +609,9 @@ func GetService(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	var serviceRes ServiceResponse
 	serviceId := c.Param("serviceId")
 	err := db.QueryRow(
@@ -560,21 +620,25 @@ func GetService(c *gin.Context) {
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
 
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		c.JSON(http.StatusOK, serviceRes)
+		return
 	}
+
+	c.JSON(http.StatusOK, serviceRes)
 }
 
 func GetServiceAttrLine(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	serviceId := c.Param("serviceId")
 	attributeId := c.Param("attributeId")
 	// get the line's ID
@@ -588,9 +652,10 @@ func GetServiceAttrLine(c *gin.Context) {
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		c.JSON(http.StatusOK, serviceAttrLineRes)
+		return
 	}
+
+	c.JSON(http.StatusOK, serviceAttrLineRes)
 }
 
 func GetServiceAttrLines(c *gin.Context) {
@@ -646,51 +711,6 @@ func GetServiceAttrLines(c *gin.Context) {
 	})
 }
 
-// GetServiceAttrVals - Get all the service attribute values for a particular service attr line.
-// func GetServiceAttrLineVals(c *gin.Context) {
-// 	db, ok := c.MustGet("databaseConn").(*sql.DB)
-// 	if !ok {
-// 		c.JSON(http.StatusInternalServerError, gin.H{})
-// 		return
-// 	}
-// 	lineId := c.Param("lineId")
-// 	serviceAttrValIds, err := db.Query(
-// 		"SELECT id FROM service_attribute_values WHERE line_id=$1",
-// 		lineId,
-// 	)
-// 	if err != nil {
-// 		log.Print(err)
-// 		c.JSON(http.StatusInternalServerError, gin.H{})
-// 		return
-// 	}
-// 	var serviceAttrVals []ServiceAttributeValue
-// 	for serviceAttrValIds.Next() {
-// 		var serviceAttrValId string
-// 		var serviceAttrVal ServiceAttributeValue
-// 		err := serviceAttrValIds.Scan(&serviceAttrValId)
-
-// 		if err != nil {
-// 			log.Print(err)
-// 			c.JSON(http.StatusInternalServerError, gin.H{})
-// 			return
-// 		} else {
-// 			serviceAttrVal.Id = serviceAttrValId
-// 			serviceAttrVal.ValueTitle, err = GetAttributeValueTitleFromServiceAttrId(db, serviceAttrValId)
-// 			if err != nil {
-// 				log.Print(err)
-// 				c.JSON(http.StatusInternalServerError, gin.H{})
-// 				return
-// 			} else {
-// 				serviceAttrVals = append(serviceAttrVals, serviceAttrVal)
-// 			}
-// 		}
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{
-// 		attrValResArrKey: serviceAttrVals,
-// 	})
-// }
-
 //TODO get individual attribute value using id
 // maybe, build frontend first
 
@@ -699,29 +719,36 @@ func UpdateAttribute(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	attributeId := c.Param("attributeId")
 	var requestBody Attribute
-	if err := c.BindJSON(&requestBody); err != nil {
+	err := c.BindJSON(&requestBody)
+	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
-	} else {
-		title := requestBody.Title
-		stmt, err := db.Prepare(
-			"UPDATE attributes SET title = $1 WHERE id = $2",
-		)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-		}
-		_, err = stmt.Exec(title, attributeId)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-		} else {
-			c.JSON(http.StatusNoContent, gin.H{})
-		}
+		return
 	}
+
+	title := requestBody.Title
+	stmt, err := db.Prepare(
+		"UPDATE attributes SET title = $1 WHERE id = $2",
+	)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	_, err = stmt.Exec(title, attributeId)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, gin.H{})
 }
 
 // UpdateAttributeValue -
@@ -729,29 +756,36 @@ func UpdateAttributeValue(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	attrValId := c.Param("valueId")
 	var requestBody AttributeValue
-	if err := c.BindJSON(&requestBody); err != nil {
+	err := c.BindJSON(&requestBody)
+	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
-	} else {
-		title := requestBody.Title
-		stmt, err := db.Prepare(
-			"UPDATE attribute_values SET title = $1 WHERE id = $2",
-		)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-		}
-		_, err = stmt.Exec(title, attrValId)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-		} else {
-			c.JSON(http.StatusNoContent, gin.H{})
-		}
+		return
 	}
+
+	title := requestBody.Title
+	stmt, err := db.Prepare(
+		"UPDATE attribute_values SET title = $1 WHERE id = $2",
+	)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	_, err = stmt.Exec(title, attrValId)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, gin.H{})
 }
 
 // UpdateService -
@@ -759,29 +793,36 @@ func UpdateService(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
+
 	serviceId := c.Param("serviceId")
 	var requestBody Attribute
-	if err := c.BindJSON(&requestBody); err != nil {
+	err := c.BindJSON(&requestBody)
+	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
-	} else {
-		title := requestBody.Title
-		stmt, err := db.Prepare(
-			"UPDATE services SET title = $1 WHERE id = $2",
-		)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-		}
-		_, err = stmt.Exec(title, serviceId)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-		} else {
-			c.JSON(http.StatusNoContent, gin.H{})
-		}
+		return
 	}
+
+	title := requestBody.Title
+	stmt, err := db.Prepare(
+		"UPDATE services SET title = $1 WHERE id = $2",
+	)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	_, err = stmt.Exec(title, serviceId)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, gin.H{})
 }
 
 func GetServiceVariantAttributeValues(db *sql.DB, variantId string) (serviceAttrVals []string, err error) {
@@ -790,6 +831,7 @@ func GetServiceVariantAttributeValues(db *sql.DB, variantId string) (serviceAttr
 	if err != nil {
 		return nil, errors.New("query failed to find variant in combination table")
 	}
+
 	for rows.Next() {
 		var serviceAttrValId string
 		err := rows.Scan(&serviceAttrValId)
@@ -816,9 +858,8 @@ func GetAttributeValueTitleFromServiceAttrId(db *sql.DB, serviceAttrValId string
 	queryErr := db.QueryRow(sqlStatement, serviceAttrValId).Scan(&attrValTitle)
 	if queryErr != nil {
 		return "", errors.New(err.Error())
-	} else {
-		return attrValTitle, nil
 	}
+	return attrValTitle, nil
 }
 
 func GetServiceAttrLineVals(db *sql.DB, lineId string) (serviceAttrVals []ServiceAttributeValue, err error) {
@@ -834,11 +875,11 @@ func GetServiceAttrLineVals(db *sql.DB, lineId string) (serviceAttrVals []Servic
 		var serviceAttrValId string
 		var serviceAttrVal ServiceAttributeValue
 		err := serviceAttrValIds.Scan(&serviceAttrValId)
-
 		if err != nil {
 			log.Print(err)
 			return nil, errors.New(err.Error())
 		}
+
 		serviceAttrVal.Id = serviceAttrValId
 		serviceAttrVal.ValueTitle, err = GetAttributeValueTitleFromServiceAttrId(db, serviceAttrValId)
 		if err != nil {
