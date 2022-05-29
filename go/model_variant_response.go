@@ -16,4 +16,6 @@ type VariantResponse struct {
 	Fee float32 `json:"fee"`
 
 	ServiceId string `json:"serviceId"`
+
+	ServiceAttributeVals []string `json:"service_attribute_vals,omitempty"`
 }

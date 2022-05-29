@@ -11,6 +11,7 @@ package fee_schedule_server
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"net/http"
 
@@ -178,12 +179,14 @@ func CreateVariant(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
 
 	var requestBody CreateServiceVariantSchema
 	if err := c.BindJSON(&requestBody); err != nil {
 		log.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{})
+		return
 	} else {
 		fee := requestBody.Fee
 		serviceId := requestBody.ServiceId
@@ -196,7 +199,7 @@ func CreateVariant(c *gin.Context) {
 		id := ""
 		err := db.QueryRow(sqlStatement, serviceId, fee).Scan(&id)
 
-		for _, attrValId := range serviceAttributeValueIds {
+		for _, serviceAttrValId := range serviceAttributeValueIds {
 			stmt, err := db.Prepare(
 				`INSERT INTO service_variant_combination
 				(service_variant_id, service_attribute_value_id) 
@@ -205,11 +208,13 @@ func CreateVariant(c *gin.Context) {
 			if err != nil {
 				log.Print(err)
 				c.JSON(http.StatusInternalServerError, gin.H{})
+				return
 			}
-			_, err = stmt.Exec(id, attrValId)
+			_, err = stmt.Exec(id, serviceAttrValId)
 			if err != nil {
 				log.Print(err)
 				c.JSON(http.StatusInternalServerError, gin.H{})
+				return
 			} else {
 				c.JSON(http.StatusCreated, gin.H{})
 			}
@@ -218,6 +223,7 @@ func CreateVariant(c *gin.Context) {
 		if err != nil {
 			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
+			return
 		} else {
 			successfulRes := VariantCreatedResponse{Id: id}
 			c.JSON(http.StatusCreated, successfulRes)
@@ -479,7 +485,8 @@ func GetVariants(c *gin.Context) {
 			WHERE service_attribute_value_id = ANY($1) 
 			GROUP BY service_variant_id HAVING COUNT(*) >= $2
 			`,
-			serviceAttributeValueIdsPqArr, combinationLen).Scan(
+			serviceAttributeValueIdsPqArr, combinationLen,
+		).Scan(
 			&variantResponse.Id,
 		)
 		if combinationErr != nil {
@@ -512,7 +519,17 @@ func GetVariants(c *gin.Context) {
 				log.Print(err)
 				c.JSON(http.StatusInternalServerError, gin.H{})
 			} else {
-				variantsResponse = append(variantsResponse, variantRes)
+				var serviceAttrVals []string
+				var err error
+				serviceAttrVals, err = GetServiceVariantAttributeValues(db, variantRes.Id)
+				if err != nil {
+					log.Print(err)
+					c.JSON(http.StatusInternalServerError, gin.H{})
+					return
+				} else {
+					variantRes.ServiceAttributeVals = serviceAttrVals
+					variantsResponse = append(variantsResponse, variantRes)
+				}
 			}
 		}
 	}
@@ -655,58 +672,44 @@ func GetServiceAttrLineVals(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
 	lineId := c.Param("lineId")
-	serviceAttrVals, err := db.Query(
-		"SELECT attribute_value_id FROM service_attribute_values WHERE line_id=$1",
+	serviceAttrValIds, err := db.Query(
+		"SELECT id FROM service_attribute_values WHERE line_id=$1",
 		lineId,
 	)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
-	var attrValIds []string
-	for serviceAttrVals.Next() {
-		var attrValId string
-		err := serviceAttrVals.Scan(&attrValId)
+	var serviceAttrVals []ServiceAttributeValue
+	for serviceAttrValIds.Next() {
+		var serviceAttrValId string
+		var serviceAttrVal ServiceAttributeValue
+		err := serviceAttrValIds.Scan(&serviceAttrValId)
+
 		if err != nil {
 			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
+			return
 		} else {
-			attrValIds = append(attrValIds, attrValId)
+			serviceAttrVal.Id = serviceAttrValId
+			serviceAttrVal.ValueTitle, err = GetAttributeValueTitleFromServiceAttrId(db, serviceAttrValId)
+			if err != nil {
+				log.Print(err)
+				c.JSON(http.StatusInternalServerError, gin.H{})
+				return
+			} else {
+				serviceAttrVals = append(serviceAttrVals, serviceAttrVal)
+			}
 		}
 	}
 
-	rows, err := db.Query(
-		"SELECT * FROM attribute_values WHERE id = ANY($1)",
-		pq.Array(attrValIds),
-	)
-	if err != nil {
-		log.Print(err)
-		c.JSON(http.StatusInternalServerError, gin.H{})
-	}
-
-	var attrValResArr []AttributeValueResponse
-	for rows.Next() {
-		var attrValRes AttributeValueResponse
-		err := rows.Scan(&attrValRes.Id, &attrValRes.Title, &attrValRes.AttributeId)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-		} else {
-			attrValResArr = append(attrValResArr, attrValRes)
-		}
-	}
-
-	defer rows.Close()
-	if err != nil {
-		log.Print(err)
-		c.JSON(http.StatusInternalServerError, gin.H{})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			attrValResArrKey: attrValResArr,
-		})
-	}
+	c.JSON(http.StatusOK, gin.H{
+		attrValResArrKey: serviceAttrVals,
+	})
 }
 
 //TODO get individual attribute value using id
@@ -799,5 +802,42 @@ func UpdateService(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusNoContent, gin.H{})
 		}
+	}
+}
+
+func GetServiceVariantAttributeValues(db *sql.DB, variantId string) (serviceAttrVals []string, err error) {
+	rows, err := db.Query(
+		"SELECT service_attribute_value_id FROM service_variant_combination WHERE service_variant_id = $1", variantId)
+	if err != nil {
+		return nil, errors.New("query failed to find variant in combination table")
+	}
+	for rows.Next() {
+		var serviceAttrValId string
+		err := rows.Scan(&serviceAttrValId)
+		if err != nil {
+			return nil, errors.New(err.Error())
+		}
+
+		serviceAttrVal, err := GetAttributeValueTitleFromServiceAttrId(db, serviceAttrValId)
+		if err != nil {
+			return nil, errors.New(err.Error())
+		}
+		serviceAttrVals = append(serviceAttrVals, serviceAttrVal)
+	}
+	return serviceAttrVals, nil
+}
+
+func GetAttributeValueTitleFromServiceAttrId(db *sql.DB, serviceAttrValId string) (attrValTitle string, err error) {
+	sqlStatement := `
+	WITH attr_value_ids AS (
+		SELECT attribute_value_id FROM service_attribute_values WHERE id = $1
+	)
+	SELECT title FROM attribute_values WHERE id IN (SELECT attribute_value_id FROM attr_value_ids)
+	`
+	queryErr := db.QueryRow(sqlStatement, serviceAttrValId).Scan(&attrValTitle)
+	if queryErr != nil {
+		return "", errors.New(err.Error())
+	} else {
+		return attrValTitle, nil
 	}
 }

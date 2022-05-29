@@ -743,6 +743,9 @@ components:
       type: object
     VariantResponse:
       example:
+        service_attribute_vals:
+        - service_attribute_vals
+        - service_attribute_vals
         fee: 0.8008281904610115
         id: id
         serviceId: serviceId
@@ -753,6 +756,10 @@ components:
           type: number
         serviceId:
           type: string
+        service_attribute_vals:
+          items:
+            type: string
+          type: array
       required:
       - fee
       - id
