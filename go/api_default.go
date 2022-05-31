@@ -206,12 +206,12 @@ func CreateVariant(c *gin.Context) {
 	serviceId := requestBody.ServiceId
 	serviceAttributeValueIds := requestBody.ServiceAttributeValueIds
 	sqlStatement := `
-	INSERT INTO service_variants (service_id, fee)
-	VALUES ($1, $2)
+	INSERT INTO service_variants (service_id, fee, service_attribute_value_ids)
+	VALUES ($1, $2, $3)
 	RETURNING id
 	`
 	id := ""
-	err := db.QueryRow(sqlStatement, serviceId, fee).Scan(&id)
+	err := db.QueryRow(sqlStatement, serviceId, fee, pq.Array(serviceAttributeValueIds)).Scan(&id)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
@@ -236,7 +236,6 @@ func CreateVariant(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{})
 			return
 		}
-		c.JSON(http.StatusCreated, gin.H{})
 	}
 
 	successfulRes := VariantCreatedResponse{Id: id}
@@ -479,6 +478,26 @@ func GetAllAttributes(c *gin.Context) {
 	})
 }
 
+func GetAttribute(c *gin.Context) {
+	db, ok := c.MustGet("databaseConn").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	attributeId := c.Param("attributeId")
+	var attrRes AttributeResponse
+	err := db.QueryRow(
+		"SELECT * FROM attributes WHERE id=$1", attributeId).Scan(&attrRes.Title, &attrRes.Id)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	c.JSON(http.StatusOK, attrRes)
+}
+
 // GetAllServices -
 func GetAllServices(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
@@ -572,7 +591,8 @@ func GetVariants(c *gin.Context) {
 
 		for rows.Next() {
 			var variantRes VariantResponse
-			err := rows.Scan(&variantRes.Id, &variantRes.ServiceId, &variantRes.Fee)
+			var serviceAttrValIds []string
+			err := rows.Scan(&variantRes.Id, &variantRes.ServiceId, &variantRes.Fee, (*pq.StringArray)(&serviceAttrValIds))
 			if err != nil {
 				log.Print(err)
 				c.JSON(http.StatusInternalServerError, gin.H{})
@@ -588,7 +608,7 @@ func GetVariants(c *gin.Context) {
 				return
 			}
 
-			serviceAttrVals, err := GetServiceVariantAttributeValues(db, variantRes.Id)
+			serviceAttrVals, err := GetServiceVariantAttributeValues(db, serviceAttrValIds)
 			if err != nil {
 				log.Print(err)
 				c.JSON(http.StatusInternalServerError, gin.H{})
@@ -616,7 +636,7 @@ func GetService(c *gin.Context) {
 	serviceId := c.Param("serviceId")
 	err := db.QueryRow(
 		"SELECT * FROM services WHERE id=$1",
-		serviceId).Scan(&serviceRes.Id, &serviceRes.Title)
+		serviceId).Scan(&serviceRes.Title, &serviceRes.Id)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
@@ -639,15 +659,30 @@ func GetServiceAttrLine(c *gin.Context) {
 		return
 	}
 
-	serviceId := c.Param("serviceId")
-	attributeId := c.Param("attributeId")
+	lineId := c.Param("lineId")
 	// get the line's ID
 	var serviceAttrLineRes ServiceAttributeLineResponse
+	var serviceId string
 	err := db.QueryRow(
-		"SELECT * FROM service_attribute_lines WHERE service_id=$1 AND attribute_id=$2",
-		serviceId,
-		attributeId,
-	).Scan(&serviceAttrLineRes.Id, &serviceId, &attributeId)
+		"SELECT * FROM service_attribute_lines WHERE id=$1",
+		lineId,
+	).Scan(&serviceAttrLineRes.Id, &serviceId, &serviceAttrLineRes.AttributeId)
+
+	attrErr := db.QueryRow(
+		"SELECT * FROM attributes WHERE id=$1",
+		serviceAttrLineRes.AttributeId).Scan(&serviceAttrLineRes.AttributeTitle, &serviceAttrLineRes.AttributeId)
+	if attrErr != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	serviceAttrLineRes.ServiceAttributeValues, err = GetServiceAttrLineVals(db, serviceAttrLineRes.Id)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
 
 	if err != nil {
 		log.Print(err)
@@ -825,21 +860,9 @@ func UpdateService(c *gin.Context) {
 	c.JSON(http.StatusNoContent, gin.H{})
 }
 
-func GetServiceVariantAttributeValues(db *sql.DB, variantId string) (serviceAttrVals []string, err error) {
-	rows, err := db.Query(
-		"SELECT service_attribute_value_id FROM service_variant_combination WHERE service_variant_id = $1", variantId)
-	if err != nil {
-		return nil, errors.New("query failed to find variant in combination table")
-	}
-
-	for rows.Next() {
-		var serviceAttrValId string
-		err := rows.Scan(&serviceAttrValId)
-		if err != nil {
-			return nil, errors.New(err.Error())
-		}
-
-		serviceAttrVal, err := GetAttributeValueTitleFromServiceAttrId(db, serviceAttrValId)
+func GetServiceVariantAttributeValues(db *sql.DB, serviceAttrValIds []string) (serviceAttrVals []string, err error) {
+	for _, serviceAttrValId := range serviceAttrValIds {
+		serviceAttrVal, err := GetAttributeValueTitleFromServiceAttrId(db, string(serviceAttrValId))
 		if err != nil {
 			return nil, errors.New(err.Error())
 		}

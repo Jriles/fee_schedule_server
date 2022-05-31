@@ -179,6 +179,13 @@ var routes = Routes{
 	},
 
 	{
+		"GetAllAttributes",
+		http.MethodGet,
+		"/attributes/:attributeId",
+		GetAttribute,
+	},
+
+	{
 		"GetAllServices",
 		http.MethodGet,
 		"/services",
@@ -209,16 +216,9 @@ var routes = Routes{
 	{
 		"GetServiceAttrLine",
 		http.MethodGet,
-		"/services/:serviceId/attributes/:attributeId/lines",
+		"/service_attribute_lines/:lineId",
 		GetServiceAttrLine,
 	},
-
-	// {
-	// 	"GetServiceAttrVals",
-	// 	http.MethodGet,
-	// 	"/service_attribute_lines/:lineId/values",
-	// 	GetServiceAttrLineVals,
-	// },
 
 	{
 		"UpdateAttribute",

@@ -119,7 +119,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/AttributeResponse'
+                  $ref: '#/paths/~1attributes~1%7BattributeId%7D/get/responses/200/content/application~1json/schema'
                 type: array
           description: OK
     post:
@@ -159,6 +159,25 @@ paths:
       responses:
         "204":
           description: Deleted
+    get:
+      description: Get an attribute from its id.
+      operationId: getAttribute
+      parameters:
+      - explode: false
+        in: path
+        name: attributeId
+        required: true
+        schema:
+          title: AttributeId
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttributeResponse'
+          description: OK
     patch:
       description: Update an attribute's name or other details. But not the attribute
         values.
@@ -288,34 +307,6 @@ paths:
         "204":
           description: Updated
   /services/{serviceId}/attributes/{attributeId}/lines:
-    get:
-      operationId: getServiceAttribtuteLine
-      parameters:
-      - explode: false
-        in: path
-        name: serviceId
-        required: true
-        schema:
-          title: ServiceId
-          type: string
-        style: simple
-      - explode: false
-        in: path
-        name: attributeId
-        required: true
-        schema:
-          title: AttributeId
-          type: string
-        style: simple
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceAttributeLineResponse'
-          description: Success
-      summary: Given a service id and an attribute id, return the service attribute
-        line for that combination
     post:
       operationId: createServiceAttributeLine
       parameters:
@@ -358,7 +349,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/paths/~1services~1%7BserviceId%7D~1attributes~1%7BattributeId%7D~1lines/get/responses/200/content/application~1json/schema'
+                  $ref: '#/paths/~1service_attribute_lines~1%7BlineId%7D/get/responses/200/content/application~1json/schema'
                 type: array
           description: Success
       summary: Given a service id, return the all service attribute lines.
@@ -378,6 +369,26 @@ paths:
         "204":
           description: Deleted
       summary: Delete a service attribute line.
+    get:
+      operationId: getServiceAttributeLine
+      parameters:
+      - explode: false
+        in: path
+        name: lineId
+        required: true
+        schema:
+          title: LineId
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceAttributeLineResponse'
+          description: Success
+      summary: Given a service id and an attribute id, return the service attribute
+        line for that combination
   /service_attribute_lines/{lineId}/values:
     description: This endpoint supports CRD on the allowed values for a service. Think
       1 day or 2 day or 3 day for filing speed attribute on Ammended and Restated
@@ -399,7 +410,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/paths/~1services~1%7BserviceId%7D~1attributes~1%7BattributeId%7D~1lines/get/responses/200/content/application~1json/schema/properties/service_attribute_values/items'
+                  $ref: '#/paths/~1service_attribute_lines~1%7BlineId%7D/get/responses/200/content/application~1json/schema/properties/service_attribute_values/items'
                 type: array
           description: Created
       summary: Get all the service attribute values for a particular service attribute
@@ -435,7 +446,7 @@ paths:
           description: Created
       summary: create a new service attribute value (not an attribute value.) This
         only applies to the service listed in the path.
-  /services_attribute_values/{valueId}:
+  /service_attribute_values/{valueId}:
     delete:
       operationId: deleteServiceAttributeValue
       parameters:
@@ -608,6 +619,7 @@ components:
   schemas:
     ServiceAttributeLineResponse:
       example:
+        attribute_id: attribute_id
         attribute_title: attribute_title
         id: id
         service_attribute_values:
@@ -624,6 +636,8 @@ components:
           items:
             $ref: '#/components/schemas/service_attribute_value'
           type: array
+        attribute_id:
+          type: string
       required:
       - id
       - service_attribute_values

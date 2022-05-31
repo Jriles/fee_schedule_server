@@ -16,4 +16,6 @@ type ServiceAttributeLineResponse struct {
 	AttributeTitle string `json:"attribute_title,omitempty"`
 
 	ServiceAttributeValues []ServiceAttributeValue `json:"service_attribute_values"`
+
+	AttributeId string `json:"attribute_id,omitempty"`
 }
