@@ -479,6 +479,16 @@ paths:
           title: ServiceAttributeValueIds
           type: array
         style: form
+      - description: Page number of the total variant count available. The number
+          of variants per page currently is 50. Omitting this value is the same as
+          asking for the first page of variants.
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          type: string
+        style: form
       responses:
         "200":
           content:

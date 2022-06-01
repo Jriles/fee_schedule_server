@@ -14,6 +14,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
@@ -25,6 +26,7 @@ const (
 	serviceResArrKey      = "services"
 	serviceVariantsArrKey = "service_variants"
 	serviceLinesKey       = "service_lines"
+	variantsPerPage       = 50
 )
 
 // CreateAttribute -
@@ -581,8 +583,22 @@ func GetVariants(c *gin.Context) {
 		variantsResponse = append(variantsResponse, variantResponse)
 	} else {
 		//SELECT ALL VARIANTS
+		pageNumStr := c.Query("page_number")
+		pageNum := 1
+		if pageNumStr != "" {
+			var err error
+			pageNum, err = strconv.Atoi(pageNumStr)
+			if err != nil {
+				log.Print(err)
+				c.JSON(http.StatusInternalServerError, gin.H{})
+				return
+			}
+		}
+
+		offset := (pageNum - 1) * variantsPerPage
 		rows, err := db.Query(
-			"SELECT * FROM service_variants")
+			`SELECT * FROM service_variants LIMIT $1 OFFSET $2
+			`, variantsPerPage, offset)
 		if err != nil {
 			log.Print(err)
 			c.JSON(http.StatusInternalServerError, gin.H{})
