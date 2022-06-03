@@ -13,11 +13,13 @@ type VariantResponse struct {
 
 	Id string `json:"id"`
 
-	Fee float32 `json:"fee"`
+	StateCost float32 `json:"state_cost"`
 
 	ServiceId string `json:"service_id"`
 
 	ServiceAttributeVals []string `json:"service_attribute_vals,omitempty"`
 
 	ServiceName string `json:"service_name,omitempty"`
+
+	PerPageStateCost float32 `json:"per_page_state_cost,omitempty"`
 }

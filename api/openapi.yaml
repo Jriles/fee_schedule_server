@@ -484,10 +484,10 @@ paths:
           asking for the first page of variants.
         explode: true
         in: query
-        name: page
+        name: page_number
         required: false
         schema:
-          type: string
+          type: integer
         style: form
       responses:
         "200":
@@ -508,24 +508,27 @@ paths:
           application/json:
             schema:
               example:
-                serviceAttributeValueIds:
-                - serviceAttributeValueIds
-                - serviceAttributeValueIds
-                fee: 0.8008281904610115
-                serviceId: serviceId
+                per_page_state_cost: 6.027456183070403
+                service_id: service_id
+                state_cost: 0.8008281904610115
+                service_attribute_value_ids:
+                - service_attribute_value_ids
+                - service_attribute_value_ids
               properties:
-                serviceId:
+                service_id:
                   type: string
-                fee:
+                state_cost:
                   type: number
-                serviceAttributeValueIds:
+                per_page_state_cost:
+                  type: number
+                service_attribute_value_ids:
                   items:
                     type: string
                   type: array
               required:
-              - fee
-              - serviceAttributeValueIds
-              - serviceId
+              - service_attribute_value_ids
+              - service_id
+              - state_cost
               title: CreateServiceVariantSchema
               type: object
         required: true
@@ -770,14 +773,15 @@ components:
         service_attribute_vals:
         - service_attribute_vals
         - service_attribute_vals
+        per_page_state_cost: 6.027456183070403
         service_name: service_name
-        fee: 0.8008281904610115
         service_id: service_id
         id: id
+        state_cost: 0.8008281904610115
       properties:
         id:
           type: string
-        fee:
+        state_cost:
           type: number
         service_id:
           type: string
@@ -787,10 +791,12 @@ components:
           type: array
         service_name:
           type: string
+        per_page_state_cost:
+          type: number
       required:
-      - fee
       - id
       - service_id
+      - state_cost
       title: VariantResponse
       type: object
     AttributeResponse:
@@ -817,23 +823,26 @@ components:
       type: object
     CreateServiceVariantSchema:
       example:
-        serviceAttributeValueIds:
-        - serviceAttributeValueIds
-        - serviceAttributeValueIds
-        fee: 0.8008281904610115
-        serviceId: serviceId
+        per_page_state_cost: 6.027456183070403
+        service_id: service_id
+        state_cost: 0.8008281904610115
+        service_attribute_value_ids:
+        - service_attribute_value_ids
+        - service_attribute_value_ids
       properties:
-        serviceId:
+        service_id:
           type: string
-        fee:
+        state_cost:
           type: number
-        serviceAttributeValueIds:
+        per_page_state_cost:
+          type: number
+        service_attribute_value_ids:
           items:
             type: string
           type: array
       required:
-      - fee
-      - serviceAttributeValueIds
-      - serviceId
+      - service_attribute_value_ids
+      - service_id
+      - state_cost
       title: CreateServiceVariantSchema
       type: object

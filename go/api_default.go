@@ -18,6 +18,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
+	"github.com/shopspring/decimal"
 )
 
 const (
@@ -204,16 +205,17 @@ func CreateVariant(c *gin.Context) {
 		return
 	}
 
-	fee := requestBody.Fee
+	stateCost := requestBody.StateCost
 	serviceId := requestBody.ServiceId
 	serviceAttributeValueIds := requestBody.ServiceAttributeValueIds
+	perPageStateCost := requestBody.PerPageStateCost
 	sqlStatement := `
-	INSERT INTO service_variants (service_id, fee, service_attribute_value_ids)
-	VALUES ($1, $2, $3)
+	INSERT INTO service_variants (service_id, state_cost, service_attribute_value_ids, per_page_state_cost)
+	VALUES ($1, $2, $3, $4)
 	RETURNING id
 	`
 	id := ""
-	err := db.QueryRow(sqlStatement, serviceId, fee, pq.Array(serviceAttributeValueIds)).Scan(&id)
+	err := db.QueryRow(sqlStatement, serviceId, stateCost, pq.Array(serviceAttributeValueIds), perPageStateCost).Scan(&id)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
@@ -540,7 +542,6 @@ func GetAllServices(c *gin.Context) {
 	})
 }
 
-// GetFee - Retrieve the fee and other information for a particular service variant, ie. (Amended and Restated Articles in Delaware, 1 Day)
 func GetVariants(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
@@ -573,8 +574,8 @@ func GetVariants(c *gin.Context) {
 		}
 
 		variantErr := db.QueryRow(
-			"SELECT fee FROM service_variants WHERE id=$1",
-			variantResponse.Id).Scan(&variantResponse.Fee)
+			"SELECT state_cost FROM service_variants WHERE id=$1",
+			variantResponse.Id).Scan(&variantResponse.StateCost)
 		if variantErr != nil {
 			log.Print(variantErr)
 			c.JSON(http.StatusInternalServerError, gin.H{})
@@ -608,7 +609,7 @@ func GetVariants(c *gin.Context) {
 		for rows.Next() {
 			var variantRes VariantResponse
 			var serviceAttrValIds []string
-			err := rows.Scan(&variantRes.Id, &variantRes.ServiceId, &variantRes.Fee, (*pq.StringArray)(&serviceAttrValIds))
+			err := rows.Scan(&variantRes.Id, &variantRes.ServiceId, &variantRes.StateCost, (*pq.StringArray)(&serviceAttrValIds), &variantRes.PerPageStateCost)
 			if err != nil {
 				log.Print(err)
 				c.JSON(http.StatusInternalServerError, gin.H{})
@@ -928,4 +929,10 @@ func GetServiceAttrLineVals(db *sql.DB, lineId string) (serviceAttrVals []Servic
 		serviceAttrVals = append(serviceAttrVals, serviceAttrVal)
 	}
 	return serviceAttrVals, nil
+}
+
+func CalculateVariantStateCost(stateCostSubtotal decimal.Decimal, perPageStateCost decimal.Decimal, pageCount decimal.Decimal) (totalStateCost decimal.Decimal) {
+	pagesCost := perPageStateCost.Mul(pageCount)
+	totalStateCost = stateCostSubtotal.Add(pagesCost)
+	return totalStateCost
 }
