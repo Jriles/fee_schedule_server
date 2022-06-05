@@ -551,6 +551,7 @@ func GetVariants(c *gin.Context) {
 
 	var variantsResponse []VariantResponse
 	serviceAttributeValueIds := c.Request.URL.Query()["serviceAttributeValueIds[]"]
+	pageCount := c.Request.URL.Query()["filing_page_count"]
 	combinationLen := len(serviceAttributeValueIds)
 	if combinationLen > 0 {
 		//select a specific variant
@@ -573,14 +574,29 @@ func GetVariants(c *gin.Context) {
 			return
 		}
 
+		var stateCostSubtotal decimal.Decimal
+		var perPageStateCost decimal.Decimal
 		variantErr := db.QueryRow(
-			"SELECT state_cost FROM service_variants WHERE id=$1",
-			variantResponse.Id).Scan(&variantResponse.StateCost)
+			"SELECT state_cost, per_page_state_cost FROM service_variants WHERE id=$1",
+			variantResponse.Id).Scan(&stateCostSubtotal, &perPageStateCost)
 		if variantErr != nil {
 			log.Print(variantErr)
 			c.JSON(http.StatusInternalServerError, gin.H{})
 			return
 		}
+
+		pageCountDecimal := decimal.NewFromInt(0)
+		if len(pageCount) > 0 {
+			var err error
+			pageCountDecimal, err = decimal.NewFromString(pageCount[0])
+			if err != nil {
+				log.Print(err)
+				c.JSON(http.StatusInternalServerError, gin.H{})
+				return
+			}
+		}
+
+		variantResponse.StateCost = CalculateVariantStateCost(stateCostSubtotal, perPageStateCost, pageCountDecimal)
 		variantsResponse = append(variantsResponse, variantResponse)
 	} else {
 		//SELECT ALL VARIANTS
