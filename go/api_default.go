@@ -10,10 +10,13 @@
 package fee_schedule_server
 
 import (
+	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -891,6 +894,22 @@ func UpdateService(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusNoContent, gin.H{})
+}
+
+func LoginUser(c *gin.Context) {
+	orgId := "orgId_example"                                                                    // string | the org's UUID (unique)
+	appId := "appId_example"                                                                    // string | the app's UUID (unique)
+	loginSchema := *openapiclient.NewLoginSchema("Username_example", "Password_example", false) // LoginSchema |
+
+	configuration := openapiclient.NewConfiguration()
+	api_client := openapiclient.NewAPIClient(configuration)
+	resp, r, err := api_client.DefaultApi.CreateUserSession(context.Background(), orgId, appId).LoginSchema(loginSchema).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.CreateUserSession``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `CreateUserSession`: SessionTokenAndUserId
+	fmt.Fprintf(os.Stdout, "Response from `DefaultApi.CreateUserSession`: %v\n", resp)
 }
 
 func GetServiceVariantAttributeValues(db *sql.DB, serviceAttrValIds []string) (serviceAttrVals []string, err error) {

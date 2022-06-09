@@ -9,12 +9,11 @@
 
 package fee_schedule_server
 
-import "github.com/shopspring/decimal"
-
 type VariantResponse struct {
+
 	Id string `json:"id"`
 
-	StateCost decimal.Decimal `json:"state_cost"`
+	StateCost float32 `json:"state_cost"`
 
 	ServiceId string `json:"service_id"`
 

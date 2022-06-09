@@ -8,9 +8,11 @@ go/model_create_attribute_value_schema.go
 go/model_create_service_attribute_value_schema.go
 go/model_create_service_schema.go
 go/model_create_service_variant_schema.go
+go/model_login_schema.go
 go/model_service_attribute_line_response.go
 go/model_service_attribute_value.go
 go/model_service_response.go
+go/model_successful_login_response.go
 go/model_update_attribute_schema.go
 go/model_update_attribute_value_schema.go
 go/model_update_service_schema.go

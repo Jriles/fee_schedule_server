@@ -240,4 +240,11 @@ var routes = Routes{
 		"/services/:serviceId/",
 		UpdateService,
 	},
+
+	{
+		"LoginUser",
+		http.MethodPost,
+		"/login",
+		LoginUser,
+	},
 }

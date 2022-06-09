@@ -489,6 +489,15 @@ paths:
         schema:
           type: integer
         style: form
+      - description: This param represents the number of pages present in the current
+          filing order. Some filings include a per page fee at the state level.
+        explode: true
+        in: query
+        name: filing_page_count
+        required: false
+        schema:
+          type: integer
+        style: form
       responses:
         "200":
           content:
@@ -579,6 +588,40 @@ paths:
                 $ref: '#/paths/~1service_variants~1/get/responses/200/content/application~1json/schema'
           description: OK
       summary: Get all variants for a particular service.
+  /login:
+    post:
+      operationId: login
+      requestBody:
+        $ref: '#/components/requestBodies/LoginSchema'
+        content:
+          application/json:
+            schema:
+              example:
+                password: password
+                remember_me: remember_me
+                username: username
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                remember_me:
+                  type: string
+              required:
+              - password
+              - remember_me
+              - username
+              title: LoginSchema
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessfulLoginResponse'
+          description: OK
+      summary: Login a user using username and password.
 components:
   requestBodies:
     UpdateAttributeValueSchema:
@@ -622,6 +665,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/UpdateServiceSchema'
+      required: true
+    LoginSchema:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/LoginSchema'
       required: true
     CreateServiceVariantSchema:
       content:
@@ -744,6 +793,14 @@ components:
       - id
       title: VariantCreatedResponse
       type: object
+    SuccessfulLoginResponse:
+      example:
+        session_token: session_token
+      properties:
+        session_token:
+          type: string
+      title: SuccessfulLoginResponse
+      type: object
     ServiceResponse:
       example:
         id: id
@@ -820,6 +877,24 @@ components:
         title:
           type: string
       title: UpdateServiceSchema
+      type: object
+    LoginSchema:
+      example:
+        password: password
+        remember_me: remember_me
+        username: username
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        remember_me:
+          type: string
+      required:
+      - password
+      - remember_me
+      - username
+      title: LoginSchema
       type: object
     CreateServiceVariantSchema:
       example:
