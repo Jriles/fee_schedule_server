@@ -19,6 +19,7 @@ import (
 	"os"
 	"strconv"
 
+	qualdevlabs_auth_client "github.com/Jriles/QualDevLabsAuthGoClient"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
@@ -897,9 +898,9 @@ func UpdateService(c *gin.Context) {
 }
 
 func LoginUser(c *gin.Context) {
-	orgId := "orgId_example"                                                                    // string | the org's UUID (unique)
-	appId := "appId_example"                                                                    // string | the app's UUID (unique)
-	loginSchema := *openapiclient.NewLoginSchema("Username_example", "Password_example", false) // LoginSchema |
+	orgId := "orgId_example"                                                                              // string | the org's UUID (unique)
+	appId := "appId_example"                                                                              // string | the app's UUID (unique)
+	loginSchema := *qualdevlabs_auth_client.NewLoginSchema("Username_example", "Password_example", false) // LoginSchema |
 
 	configuration := openapiclient.NewConfiguration()
 	api_client := openapiclient.NewAPIClient(configuration)
