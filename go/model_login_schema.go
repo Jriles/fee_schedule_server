@@ -15,5 +15,5 @@ type LoginSchema struct {
 
 	Password string `json:"password"`
 
-	RememberMe string `json:"remember_me"`
+	RememberMe bool `json:"remember_me"`
 }

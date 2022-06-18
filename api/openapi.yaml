@@ -598,7 +598,7 @@ paths:
             schema:
               example:
                 password: password
-                remember_me: remember_me
+                remember_me: ""
                 username: username
               properties:
                 username:
@@ -606,7 +606,7 @@ paths:
                 password:
                   type: string
                 remember_me:
-                  type: string
+                  type: bool
               required:
               - password
               - remember_me
@@ -881,7 +881,7 @@ components:
     LoginSchema:
       example:
         password: password
-        remember_me: remember_me
+        remember_me: ""
         username: username
       properties:
         username:
@@ -889,7 +889,7 @@ components:
         password:
           type: string
         remember_me:
-          type: string
+          type: bool
       required:
       - password
       - remember_me

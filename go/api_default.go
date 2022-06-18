@@ -19,10 +19,9 @@ import (
 	"os"
 	"strconv"
 
-	qualdevlabs_auth_client "github.com/Jriles/QualDevLabsAuthGoClient"
+	qualdevlabs_auth_go_client "github.com/Jriles/QualDevLabsAuthGoClient"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
-	"github.com/shopspring/decimal"
 )
 
 const (
@@ -33,6 +32,12 @@ const (
 	serviceLinesKey       = "service_lines"
 	variantsPerPage       = 50
 )
+
+type contextKey struct {
+	name string
+}
+
+var apiKeyCtxKey = &contextKey{"x-api-key"}
 
 // CreateAttribute -
 func CreateAttribute(c *gin.Context) {
@@ -578,8 +583,9 @@ func GetVariants(c *gin.Context) {
 			return
 		}
 
-		var stateCostSubtotal decimal.Decimal
-		var perPageStateCost decimal.Decimal
+		var pageCountInt int
+		var stateCostSubtotal int
+		var perPageStateCost int
 		variantErr := db.QueryRow(
 			"SELECT state_cost, per_page_state_cost FROM service_variants WHERE id=$1",
 			variantResponse.Id).Scan(&stateCostSubtotal, &perPageStateCost)
@@ -589,10 +595,9 @@ func GetVariants(c *gin.Context) {
 			return
 		}
 
-		pageCountDecimal := decimal.NewFromInt(0)
 		if len(pageCount) > 0 {
 			var err error
-			pageCountDecimal, err = decimal.NewFromString(pageCount[0])
+			pageCountInt, err = strconv.Atoi(pageCount[0])
 			if err != nil {
 				log.Print(err)
 				c.JSON(http.StatusInternalServerError, gin.H{})
@@ -600,7 +605,7 @@ func GetVariants(c *gin.Context) {
 			}
 		}
 
-		variantResponse.StateCost = CalculateVariantStateCost(stateCostSubtotal, perPageStateCost, pageCountDecimal)
+		variantResponse.StateCost = CalculateVariantStateCost(stateCostSubtotal, perPageStateCost, pageCountInt)
 		variantsResponse = append(variantsResponse, variantResponse)
 	} else {
 		//SELECT ALL VARIANTS
@@ -898,13 +903,32 @@ func UpdateService(c *gin.Context) {
 }
 
 func LoginUser(c *gin.Context) {
-	orgId := "orgId_example"                                                                              // string | the org's UUID (unique)
-	appId := "appId_example"                                                                              // string | the app's UUID (unique)
-	loginSchema := *qualdevlabs_auth_client.NewLoginSchema("Username_example", "Password_example", false) // LoginSchema |
+	orgId := os.Getenv("AUTH_ORG_ID") // string | the org's UUID (unique)
+	appId := os.Getenv("AUTH_APP_ID") // string | the app's UUID (unique)
+	authApiKey := os.Getenv("AUTH_API_KEY")
+	authApiKeyStruct := qualdevlabs_auth_go_client.APIKey{
+		Key: authApiKey,
+	}
 
-	configuration := openapiclient.NewConfiguration()
-	api_client := openapiclient.NewAPIClient(configuration)
-	resp, r, err := api_client.DefaultApi.CreateUserSession(context.Background(), orgId, appId).LoginSchema(loginSchema).Execute()
+	var loginDetails LoginSchema
+	err := c.BindJSON(&loginDetails)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+	loginSchema := *qualdevlabs_auth_go_client.NewLoginSchema(
+		loginDetails.Username,
+		loginDetails.Password,
+		loginDetails.RememberMe,
+	)
+
+	configuration := qualdevlabs_auth_go_client.NewConfiguration()
+	api_client := qualdevlabs_auth_go_client.NewAPIClient(configuration)
+	ctx := context.WithValue(context.Background(), qualdevlabs_auth_go_client.ContextAPIKeys, map[string]qualdevlabs_auth_go_client.APIKey{
+		"apiKeyHeader": authApiKeyStruct,
+	})
+	resp, r, err := api_client.DefaultApi.CreateUserSession(ctx, orgId, appId).LoginSchema(loginSchema).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.CreateUserSession``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -967,8 +991,8 @@ func GetServiceAttrLineVals(db *sql.DB, lineId string) (serviceAttrVals []Servic
 	return serviceAttrVals, nil
 }
 
-func CalculateVariantStateCost(stateCostSubtotal decimal.Decimal, perPageStateCost decimal.Decimal, pageCount decimal.Decimal) (totalStateCost decimal.Decimal) {
-	pagesCost := perPageStateCost.Mul(pageCount)
-	totalStateCost = stateCostSubtotal.Add(pagesCost)
+func CalculateVariantStateCost(stateCostSubtotal int, perPageStateCost int, pageCount int) (totalStateCost int) {
+	pagesCost := perPageStateCost * pageCount
+	totalStateCost = stateCostSubtotal * pagesCost
 	return totalStateCost
 }

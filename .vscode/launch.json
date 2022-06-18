@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Fee Schedule API",
+        "type": "go",
+        "request": "launch", 
+        "mode": "debug",
+        "program": "${workspaceFolder}/main.go",
+        "env": {
+          "FEE_SCHEDULE_SERVER_DB_CONN":"user=jackriley password=843134 dbname=fee_schedule_api sslmode=disable",
+          "AUTH_ORG_ID": "c9d50a2e-5cc8-4313-a911-991724287930",
+          "AUTH_APP_ID": "329906bf-9506-4c9f-894a-6efd733ccfa0",
+          "AUTH_API_KEY": "f96cd1cf-c97c-4644-bfe9-343083f4ffaa"
+        },
+        "showLog": true
+      }
+    ]
+  }

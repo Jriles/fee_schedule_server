@@ -10,10 +10,9 @@
 package fee_schedule_server
 
 type VariantResponse struct {
-
 	Id string `json:"id"`
 
-	StateCost float32 `json:"state_cost"`
+	StateCost int `json:"state_cost"`
 
 	ServiceId string `json:"service_id"`
 
