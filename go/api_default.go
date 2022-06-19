@@ -932,9 +932,13 @@ func LoginUser(c *gin.Context) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.CreateUserSession``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
-	// response from `CreateUserSession`: SessionTokenAndUserId
-	fmt.Fprintf(os.Stdout, "Response from `DefaultApi.CreateUserSession`: %v\n", resp)
+	loginRes := SuccessfulLoginResponse{
+		resp.Token,
+	}
+	c.JSON(http.StatusOK, loginRes)
 }
 
 func GetServiceVariantAttributeValues(db *sql.DB, serviceAttrValIds []string) (serviceAttrVals []string, err error) {
