@@ -584,8 +584,8 @@ func GetVariants(c *gin.Context) {
 		}
 
 		var pageCountInt int
-		var stateCostSubtotal int
-		var perPageStateCost int
+		var stateCostSubtotal int32
+		var perPageStateCost int32
 		variantErr := db.QueryRow(
 			"SELECT state_cost, per_page_state_cost FROM service_variants WHERE id=$1",
 			variantResponse.Id).Scan(&stateCostSubtotal, &perPageStateCost)
@@ -605,7 +605,7 @@ func GetVariants(c *gin.Context) {
 			}
 		}
 
-		variantResponse.StateCost = CalculateVariantStateCost(stateCostSubtotal, perPageStateCost, pageCountInt)
+		variantResponse.StateCost = CalculateVariantStateCost(stateCostSubtotal, perPageStateCost, int32(pageCountInt))
 		variantsResponse = append(variantsResponse, variantResponse)
 	} else {
 		//SELECT ALL VARIANTS
@@ -937,6 +937,7 @@ func LoginUser(c *gin.Context) {
 	}
 	loginRes := SuccessfulLoginResponse{
 		resp.Token,
+		resp.UserId,
 	}
 	c.JSON(http.StatusOK, loginRes)
 }
@@ -995,7 +996,7 @@ func GetServiceAttrLineVals(db *sql.DB, lineId string) (serviceAttrVals []Servic
 	return serviceAttrVals, nil
 }
 
-func CalculateVariantStateCost(stateCostSubtotal int, perPageStateCost int, pageCount int) (totalStateCost int) {
+func CalculateVariantStateCost(stateCostSubtotal int32, perPageStateCost int32, pageCount int32) (totalStateCost int32) {
 	pagesCost := perPageStateCost * pageCount
 	totalStateCost = stateCostSubtotal * pagesCost
 	return totalStateCost

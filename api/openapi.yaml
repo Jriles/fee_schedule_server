@@ -19,6 +19,8 @@ paths:
                   $ref: '#/paths/~1services/post/responses/201/content/application~1json/schema'
                 type: array
           description: OK
+      security:
+      - sessionCookieAuth: []
     post:
       operationId: createService
       requestBody:
@@ -45,6 +47,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServiceResponse'
           description: Created
+      security:
+      - sessionCookieAuth: []
   /services/{serviceId}/:
     delete:
       description: Delete a service.
@@ -61,6 +65,8 @@ paths:
       responses:
         "204":
           description: Deleted
+      security:
+      - sessionCookieAuth: []
     get:
       description: Get one service's details
       operationId: getService
@@ -80,6 +86,8 @@ paths:
               schema:
                 $ref: '#/paths/~1services/post/responses/201/content/application~1json/schema'
           description: OK
+      security:
+      - sessionCookieAuth: []
     patch:
       description: Update Service values
       operationId: updateService
@@ -108,6 +116,8 @@ paths:
       responses:
         "204":
           description: Updated
+      security:
+      - sessionCookieAuth: []
   /attributes:
     get:
       description: Get all database wide attributes like stock count, jurisdiction
@@ -122,6 +132,8 @@ paths:
                   $ref: '#/paths/~1attributes~1%7BattributeId%7D/get/responses/200/content/application~1json/schema'
                 type: array
           description: OK
+      security:
+      - sessionCookieAuth: []
     post:
       description: Create a database-wide attribute. Think stock count or entity type
       operationId: createAttribute
@@ -143,6 +155,8 @@ paths:
       responses:
         "201":
           description: Created
+      security:
+      - sessionCookieAuth: []
   /attributes/{attributeId}:
     delete:
       description: Delete an attribute.
@@ -159,6 +173,8 @@ paths:
       responses:
         "204":
           description: Deleted
+      security:
+      - sessionCookieAuth: []
     get:
       description: Get an attribute from its id.
       operationId: getAttribute
@@ -178,6 +194,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/AttributeResponse'
           description: OK
+      security:
+      - sessionCookieAuth: []
     patch:
       description: Update an attribute's name or other details. But not the attribute
         values.
@@ -207,6 +225,8 @@ paths:
       responses:
         "204":
           description: Updated
+      security:
+      - sessionCookieAuth: []
   /attributes/{attributeId}/values:
     description: create a new value and get all values assoc. w an attribute
     get:
@@ -230,6 +250,8 @@ paths:
                   $ref: '#/components/schemas/AttributeValueResponse'
                 type: array
           description: OK
+      security:
+      - sessionCookieAuth: []
     post:
       description: Create a database-wide attribute value. Think 1000+ for stock count
         or Delware for jurisdiction.
@@ -261,6 +283,8 @@ paths:
       responses:
         "201":
           description: Created
+      security:
+      - sessionCookieAuth: []
   /attribute_values/{valueId}:
     delete:
       description: Delete an attribute value.
@@ -277,6 +301,8 @@ paths:
       responses:
         "204":
           description: Deleted
+      security:
+      - sessionCookieAuth: []
     description: update and delete specific attribute values here
     patch:
       description: Update an attribute value.
@@ -306,6 +332,8 @@ paths:
       responses:
         "204":
           description: Updated
+      security:
+      - sessionCookieAuth: []
   /services/{serviceId}/attributes/{attributeId}/lines:
     post:
       operationId: createServiceAttributeLine
@@ -329,6 +357,8 @@ paths:
       responses:
         "201":
           description: Created
+      security:
+      - sessionCookieAuth: []
       summary: Create an attribute line for a service. This is how we relate attribute
         values to services.
   /services/{serviceId}/attribute_lines:
@@ -352,6 +382,8 @@ paths:
                   $ref: '#/paths/~1service_attribute_lines~1%7BlineId%7D/get/responses/200/content/application~1json/schema'
                 type: array
           description: Success
+      security:
+      - sessionCookieAuth: []
       summary: Given a service id, return the all service attribute lines.
   /service_attribute_lines/{lineId}:
     delete:
@@ -368,6 +400,8 @@ paths:
       responses:
         "204":
           description: Deleted
+      security:
+      - sessionCookieAuth: []
       summary: Delete a service attribute line.
     get:
       operationId: getServiceAttributeLine
@@ -387,6 +421,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServiceAttributeLineResponse'
           description: Success
+      security:
+      - sessionCookieAuth: []
       summary: Given a service id and an attribute id, return the service attribute
         line for that combination
   /service_attribute_lines/{lineId}/values:
@@ -413,6 +449,8 @@ paths:
                   $ref: '#/paths/~1service_attribute_lines~1%7BlineId%7D/get/responses/200/content/application~1json/schema/properties/service_attribute_values/items'
                 type: array
           description: Created
+      security:
+      - sessionCookieAuth: []
       summary: Get all the service attribute values for a particular service attribute
         line.
     post:
@@ -444,6 +482,8 @@ paths:
       responses:
         "201":
           description: Created
+      security:
+      - sessionCookieAuth: []
       summary: create a new service attribute value (not an attribute value.) This
         only applies to the service listed in the path.
   /service_attribute_values/{valueId}:
@@ -461,6 +501,8 @@ paths:
       responses:
         "204":
           description: Deleted
+      security:
+      - sessionCookieAuth: []
       summary: Delete a service attribute value. valueId here is the service attribute
         value id NOT the attribute value id.
   /service_variants/:
@@ -505,6 +547,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/VariantResponse'
           description: OK
+      security:
+      - sessionCookieAuth: []
       summary: Retrieve the variant (fee and other information) for a particular service
         variant, ie. (Amended and Restated Articles in Delaware, 1 Day). If you provide
         no values for the serviceAttribute Values then you will recieve a list of
@@ -550,6 +594,8 @@ paths:
                   $ref: '#/components/schemas/VariantCreatedResponse'
                 type: array
           description: Created
+      security:
+      - sessionCookieAuth: []
       summary: Create a variant for a service with a specific combination of Jurisdiction,
         Filing Speed and Entity type.
   /service_variants/{variantId}:
@@ -567,6 +613,8 @@ paths:
       responses:
         "204":
           description: Deleted
+      security:
+      - sessionCookieAuth: []
       summary: Delete a service variant.
   /services/{serviceId}/variants/:
     get:
@@ -587,6 +635,8 @@ paths:
               schema:
                 $ref: '#/paths/~1service_variants~1/get/responses/200/content/application~1json/schema'
           description: OK
+      security:
+      - sessionCookieAuth: []
       summary: Get all variants for a particular service.
   /login:
     post:
@@ -598,7 +648,7 @@ paths:
             schema:
               example:
                 password: password
-                remember_me: ""
+                remember_me: true
                 username: username
               properties:
                 username:
@@ -606,7 +656,7 @@ paths:
                 password:
                   type: string
                 remember_me:
-                  type: bool
+                  type: boolean
               required:
               - password
               - remember_me
@@ -796,9 +846,15 @@ components:
     SuccessfulLoginResponse:
       example:
         session_token: session_token
+        user_id: user_id
       properties:
         session_token:
           type: string
+        user_id:
+          type: string
+      required:
+      - session_token
+      - user_id
       title: SuccessfulLoginResponse
       type: object
     ServiceResponse:
@@ -830,16 +886,16 @@ components:
         service_attribute_vals:
         - service_attribute_vals
         - service_attribute_vals
-        per_page_state_cost: 6.027456183070403
+        per_page_state_cost: 6
         service_name: service_name
         service_id: service_id
         id: id
-        state_cost: 0.8008281904610115
+        state_cost: 0
       properties:
         id:
           type: string
         state_cost:
-          type: number
+          type: integer
         service_id:
           type: string
         service_attribute_vals:
@@ -849,7 +905,7 @@ components:
         service_name:
           type: string
         per_page_state_cost:
-          type: number
+          type: integer
       required:
       - id
       - service_id
@@ -881,7 +937,7 @@ components:
     LoginSchema:
       example:
         password: password
-        remember_me: ""
+        remember_me: true
         username: username
       properties:
         username:
@@ -889,7 +945,7 @@ components:
         password:
           type: string
         remember_me:
-          type: bool
+          type: boolean
       required:
       - password
       - remember_me
@@ -921,3 +977,8 @@ components:
       - state_cost
       title: CreateServiceVariantSchema
       type: object
+  securitySchemes:
+    sessionCookieAuth:
+      in: cookie
+      name: sessionToken
+      type: apiKey

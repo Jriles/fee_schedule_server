@@ -11,5 +11,7 @@ package fee_schedule_server
 
 type SuccessfulLoginResponse struct {
 
-	SessionToken string `json:"session_token,omitempty"`
+	SessionToken string `json:"session_token"`
+
+	UserId string `json:"user_id"`
 }
