@@ -27,28 +27,32 @@ func AuthMiddleWare(c *gin.Context) {
 		Key: authApiKey,
 	}
 
-	sessionToken := c.Request.Header["Session_token"][0]
-	authTokenHeaderStruct := qualdevlabs_auth_go_client.APIKey{
-		Key: sessionToken,
-	}
+	sessionToken, sessionTokenPresent := c.Request.Header["Session_token"]
+	userId, userIdPresent := c.Request.Header["User_id"]
+	if sessionTokenPresent && userIdPresent {
+		authTokenHeaderStruct := qualdevlabs_auth_go_client.APIKey{
+			Key: sessionToken[0],
+		}
 
-	userId := c.Request.Header["User_id"][0]
+		configuration := qualdevlabs_auth_go_client.NewConfiguration()
+		api_client := qualdevlabs_auth_go_client.NewAPIClient(configuration)
+		ctx := context.WithValue(context.Background(), qualdevlabs_auth_go_client.ContextAPIKeys, map[string]qualdevlabs_auth_go_client.APIKey{
+			"apiKeyHeader": authApiKeyStruct,
+			"tokenHeader":  authTokenHeaderStruct,
+		})
+		resp, err := api_client.DefaultApi.ValidateSession(ctx, orgId, appId, userId[0]).Execute()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.ValidateSession``: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", resp)
+			c.JSON(http.StatusUnauthorized, gin.H{})
+			return
+		}
 
-	configuration := qualdevlabs_auth_go_client.NewConfiguration()
-	api_client := qualdevlabs_auth_go_client.NewAPIClient(configuration)
-	ctx := context.WithValue(context.Background(), qualdevlabs_auth_go_client.ContextAPIKeys, map[string]qualdevlabs_auth_go_client.APIKey{
-		"apiKeyHeader": authApiKeyStruct,
-		"tokenHeader":  authTokenHeaderStruct,
-	})
-	resp, err := api_client.DefaultApi.ValidateSession(ctx, orgId, appId, userId).Execute()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.ValidateSession``: %v\n", err)
-		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", resp)
-		c.JSON(http.StatusUnauthorized, gin.H{})
+		if resp.StatusCode == 200 {
+			c.Next()
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{})
 		return
-	}
-
-	if resp.StatusCode == 200 {
-		c.Next()
 	}
 }
