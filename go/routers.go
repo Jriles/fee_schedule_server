@@ -81,98 +81,98 @@ var routes = Routes{
 		"CreateAttributeValue",
 		http.MethodPost,
 		"/attributes/:attributeId/values",
-		[]gin.HandlerFunc{CreateAttributeValue},
+		[]gin.HandlerFunc{AuthMiddleWare, CreateAttributeValue},
 	},
 
 	{
 		"CreateService",
 		http.MethodPost,
 		"/services",
-		[]gin.HandlerFunc{CreateService},
+		[]gin.HandlerFunc{AuthMiddleWare, CreateService},
 	},
 
 	{
 		"CreateServiceAttributeValue",
 		http.MethodPost,
 		"/service_attribute_lines/:lineId/values",
-		[]gin.HandlerFunc{CreateServiceAttributeValue},
+		[]gin.HandlerFunc{AuthMiddleWare, CreateServiceAttributeValue},
 	},
 
 	{
 		"CreateServiceAttributeLine",
 		http.MethodPost,
 		"/services/:serviceId/attributes/:attributeId/lines",
-		[]gin.HandlerFunc{CreateServiceAttributeLine},
+		[]gin.HandlerFunc{AuthMiddleWare, CreateServiceAttributeLine},
 	},
 
 	{
 		"CreateVariant",
 		http.MethodPost,
 		"/service_variants/",
-		[]gin.HandlerFunc{CreateVariant},
+		[]gin.HandlerFunc{AuthMiddleWare, CreateVariant},
 	},
 
 	{
 		"DeleteAttribute",
 		http.MethodDelete,
 		"/attributes/:attributeId",
-		[]gin.HandlerFunc{DeleteAttribute},
+		[]gin.HandlerFunc{AuthMiddleWare, DeleteAttribute},
 	},
 
 	{
 		"DeleteAttributeValue",
 		http.MethodDelete,
 		"/attribute_values/:valueId",
-		[]gin.HandlerFunc{DeleteAttributeValue},
+		[]gin.HandlerFunc{AuthMiddleWare, DeleteAttributeValue},
 	},
 
 	{
 		"DeleteService",
 		http.MethodDelete,
 		"/services/:serviceId/",
-		[]gin.HandlerFunc{DeleteService},
+		[]gin.HandlerFunc{AuthMiddleWare, DeleteService},
 	},
 
 	{
 		"DeleteServiceAttributeValue",
 		http.MethodDelete,
 		"/service_attribute_values/:valueId",
-		[]gin.HandlerFunc{DeleteServiceAttributeValue},
+		[]gin.HandlerFunc{AuthMiddleWare, DeleteServiceAttributeValue},
 	},
 
 	{
 		"DeleteServiceAttributeLine",
 		http.MethodDelete,
 		"/service_attribute_lines/:lineId",
-		[]gin.HandlerFunc{DeleteServiceAttributeLine},
+		[]gin.HandlerFunc{AuthMiddleWare, DeleteServiceAttributeLine},
 	},
 
 	{
 		"DeleteVariant",
 		http.MethodDelete,
 		"/service_variants/:variantId",
-		[]gin.HandlerFunc{DeleteVariant},
+		[]gin.HandlerFunc{AuthMiddleWare, DeleteVariant},
 	},
 
 	{
 		"GetAllAttributeValues",
 		http.MethodGet,
 		"/attributes/:attributeId/values",
-		[]gin.HandlerFunc{GetAllAttributeValues},
+		[]gin.HandlerFunc{AuthMiddleWare, GetAllAttributeValues},
 	},
 
 	{
 		"GetAllAttributes",
 		http.MethodGet,
 		"/attributes",
-		[]gin.HandlerFunc{GetAllAttributes},
+		[]gin.HandlerFunc{AuthMiddleWare, GetAllAttributes},
 	},
 
 	{
 		"GetAllAttributes",
 		http.MethodGet,
 		"/attributes/:attributeId",
-		[]gin.HandlerFunc{GetAttribute},
+		[]gin.HandlerFunc{AuthMiddleWare, GetAttribute},
 	},
 
 	{
@@ -193,42 +193,42 @@ var routes = Routes{
 		"GetService",
 		http.MethodGet,
 		"/services/:serviceId/",
-		[]gin.HandlerFunc{GetService},
+		[]gin.HandlerFunc{AuthMiddleWare, GetService},
 	},
 
 	{
 		"GetServiceAttributeLines",
 		http.MethodGet,
 		"/services/:serviceId/attribute_lines",
-		[]gin.HandlerFunc{GetServiceAttrLines},
+		[]gin.HandlerFunc{AuthMiddleWare, GetServiceAttrLines},
 	},
 
 	{
 		"GetServiceAttrLine",
 		http.MethodGet,
 		"/service_attribute_lines/:lineId",
-		[]gin.HandlerFunc{GetServiceAttrLine},
+		[]gin.HandlerFunc{AuthMiddleWare, GetServiceAttrLine},
 	},
 
 	{
 		"UpdateAttribute",
 		http.MethodPatch,
 		"/attributes/:attributeId",
-		[]gin.HandlerFunc{UpdateAttribute},
+		[]gin.HandlerFunc{AuthMiddleWare, UpdateAttribute},
 	},
 
 	{
 		"UpdateAttributeValue",
 		http.MethodPatch,
 		"/attribute_values/:valueId",
-		[]gin.HandlerFunc{UpdateAttributeValue},
+		[]gin.HandlerFunc{AuthMiddleWare, UpdateAttributeValue},
 	},
 
 	{
 		"UpdateService",
 		http.MethodPatch,
 		"/services/:serviceId/",
-		[]gin.HandlerFunc{UpdateService},
+		[]gin.HandlerFunc{AuthMiddleWare, UpdateService},
 	},
 
 	{
