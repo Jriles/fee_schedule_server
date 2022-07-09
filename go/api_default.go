@@ -334,7 +334,7 @@ func DeleteService(c *gin.Context) {
 }
 
 // DeleteServiceAttributeValue - Delete a service attribute value. valueId here is the service attribute value id NOT the attribute value id.
-func DeleteServiceAttributeValue(c *gin.Context) {
+func DeleteServiceAttributeValueHandler(c *gin.Context) {
 	db, ok := c.MustGet("databaseConn").(*sql.DB)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{})
@@ -342,14 +342,8 @@ func DeleteServiceAttributeValue(c *gin.Context) {
 	}
 
 	valueId := c.Param("valueId")
-	stmt, err := db.Prepare("DELETE FROM service_attribute_values WHERE id=$1")
-	if err != nil {
-		log.Print(err)
-		c.JSON(http.StatusInternalServerError, gin.H{})
-		return
-	}
 
-	_, err = stmt.Exec(valueId)
+	err := DeleteServiceAttributeValue(db, valueId)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
@@ -367,6 +361,37 @@ func DeleteServiceAttributeLine(c *gin.Context) {
 	}
 
 	lineId := c.Param("lineId")
+
+	// delete all related service attribute values
+	// cascading is not option here (we want to delete assoc. variants as well and there is
+	// a many2many relation between service attribute values and service variants).
+	rows, err := db.Query(
+		"SELECT id FROM service_attribute_values WHERE line_id=$1",
+		lineId)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	for rows.Next() {
+		// service attribute value Id
+		var serviceAttrValId string
+		err = rows.Scan(&serviceAttrValId)
+		if err != nil {
+			log.Print(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+			return
+		}
+		//also deletes assoc. variants
+		err := DeleteServiceAttributeValue(db, serviceAttrValId)
+		if err != nil {
+			log.Print(err)
+			c.JSON(http.StatusInternalServerError, gin.H{})
+			return
+		}
+	}
+
 	stmt, err := db.Prepare("DELETE FROM service_attribute_lines WHERE id=$1")
 	if err != nil {
 		log.Print(err)
@@ -1000,4 +1025,56 @@ func CalculateVariantStateCost(stateCostSubtotal int32, perPageStateCost int32, 
 	pagesCost := perPageStateCost * pageCount
 	totalStateCost = stateCostSubtotal * pagesCost
 	return totalStateCost
+}
+
+// deletes a given service attribute value AND assoc. service variants.
+func DeleteServiceAttributeValue(db *sql.DB, valueId string) (err error) {
+	attrValDelStmt, err := db.Prepare("DELETE FROM service_attribute_values WHERE id=$1")
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+
+	_, err = attrValDelStmt.Exec(valueId)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+
+	var serviceVariantIds []string
+
+	rows, variantQueryErr := db.Query(
+		"SELECT service_variant_id FROM service_variant_combination WHERE service_attribute_value_id=$1",
+		valueId,
+	)
+
+	if variantQueryErr != nil {
+		log.Print(variantQueryErr)
+		return variantQueryErr
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var serviceVariantId string
+		err = rows.Scan(&serviceVariantId)
+		if err != nil {
+			log.Print(err)
+			return err
+		}
+
+		serviceVariantIds = append(serviceVariantIds, serviceVariantId)
+	}
+
+	serviceVarDelStmt, err := db.Prepare("DELETE FROM service_variants WHERE id= ANY($1)")
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+
+	_, err = serviceVarDelStmt.Exec(pq.Array(serviceVariantIds))
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+	return nil
 }

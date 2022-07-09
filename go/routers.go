@@ -137,7 +137,7 @@ var routes = Routes{
 		"DeleteServiceAttributeValue",
 		http.MethodDelete,
 		"/service_attribute_values/:valueId",
-		[]gin.HandlerFunc{AuthMiddleWare, DeleteServiceAttributeValue},
+		[]gin.HandlerFunc{AuthMiddleWare, DeleteServiceAttributeValueHandler},
 	},
 
 	{
