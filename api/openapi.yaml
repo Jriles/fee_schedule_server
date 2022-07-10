@@ -561,9 +561,9 @@ paths:
           application/json:
             schema:
               example:
-                per_page_state_cost: 6.027456183070403
+                per_page_state_cost: 6
                 service_id: service_id
-                state_cost: 0.8008281904610115
+                state_cost: 0
                 service_attribute_value_ids:
                 - service_attribute_value_ids
                 - service_attribute_value_ids
@@ -571,9 +571,9 @@ paths:
                 service_id:
                   type: string
                 state_cost:
-                  type: number
+                  type: integer
                 per_page_state_cost:
-                  type: number
+                  type: integer
                 service_attribute_value_ids:
                   items:
                     type: string
@@ -954,9 +954,9 @@ components:
       type: object
     CreateServiceVariantSchema:
       example:
-        per_page_state_cost: 6.027456183070403
+        per_page_state_cost: 6
         service_id: service_id
-        state_cost: 0.8008281904610115
+        state_cost: 0
         service_attribute_value_ids:
         - service_attribute_value_ids
         - service_attribute_value_ids
@@ -964,9 +964,9 @@ components:
         service_id:
           type: string
         state_cost:
-          type: number
+          type: integer
         per_page_state_cost:
-          type: number
+          type: integer
         service_attribute_value_ids:
           items:
             type: string

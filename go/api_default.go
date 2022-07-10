@@ -242,6 +242,7 @@ func CreateVariant(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{})
 			return
 		}
+		defer stmt.Close()
 
 		_, err = stmt.Exec(id, serviceAttrValId)
 		if err != nil {
@@ -270,6 +271,7 @@ func DeleteAttribute(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(attributeId)
 	if err != nil {
@@ -296,6 +298,7 @@ func DeleteAttributeValue(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(valueID)
 	if err != nil {
@@ -322,6 +325,7 @@ func DeleteService(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(serviceId)
 	if err != nil {
@@ -373,6 +377,7 @@ func DeleteServiceAttributeLine(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		// service attribute value Id
@@ -398,6 +403,7 @@ func DeleteServiceAttributeLine(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(lineId)
 	if err != nil {
@@ -423,6 +429,7 @@ func DeleteVariant(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(variantId)
 	if err != nil {
@@ -451,6 +458,7 @@ func GetAllAttributeValues(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
+	defer rows.Close()
 
 	var attrValResArr []AttributeValueResponse
 	for rows.Next() {
@@ -465,7 +473,6 @@ func GetAllAttributeValues(c *gin.Context) {
 		attrValResArr = append(attrValResArr, attrValRes)
 	}
 
-	defer rows.Close()
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
@@ -491,6 +498,7 @@ func GetAllAttributes(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
+	defer rows.Close()
 
 	var attrResArr []AttributeResponse
 	for rows.Next() {
@@ -504,7 +512,6 @@ func GetAllAttributes(c *gin.Context) {
 		attrResArr = append(attrResArr, attrRes)
 	}
 
-	defer rows.Close()
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
@@ -551,6 +558,7 @@ func GetAllServices(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
+	defer rows.Close()
 
 	var serviceResArr []ServiceResponse
 	for rows.Next() {
@@ -564,7 +572,6 @@ func GetAllServices(c *gin.Context) {
 		serviceResArr = append(serviceResArr, serviceRes)
 	}
 
-	defer rows.Close()
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
@@ -655,6 +662,7 @@ func GetVariants(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{})
 			return
 		}
+		defer rows.Close()
 
 		for rows.Next() {
 			var variantRes VariantResponse
@@ -842,6 +850,7 @@ func UpdateAttribute(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(title, attributeId)
 	if err != nil {
@@ -879,6 +888,7 @@ func UpdateAttributeValue(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(title, attrValId)
 	if err != nil {
@@ -916,6 +926,7 @@ func UpdateService(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(title, serviceId)
 	if err != nil {
@@ -1034,6 +1045,7 @@ func DeleteServiceAttributeValue(db *sql.DB, valueId string) (err error) {
 		log.Print(err)
 		return err
 	}
+	defer attrValDelStmt.Close()
 
 	_, err = attrValDelStmt.Exec(valueId)
 	if err != nil {
@@ -1047,13 +1059,12 @@ func DeleteServiceAttributeValue(db *sql.DB, valueId string) (err error) {
 		"SELECT service_variant_id FROM service_variant_combination WHERE service_attribute_value_id=$1",
 		valueId,
 	)
-
 	if variantQueryErr != nil {
 		log.Print(variantQueryErr)
 		return variantQueryErr
 	}
-
 	defer rows.Close()
+
 	for rows.Next() {
 		var serviceVariantId string
 		err = rows.Scan(&serviceVariantId)
@@ -1070,6 +1081,7 @@ func DeleteServiceAttributeValue(db *sql.DB, valueId string) (err error) {
 		log.Print(err)
 		return err
 	}
+	defer serviceVarDelStmt.Close()
 
 	_, err = serviceVarDelStmt.Exec(pq.Array(serviceVariantIds))
 	if err != nil {

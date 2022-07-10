@@ -13,9 +13,9 @@ type CreateServiceVariantSchema struct {
 
 	ServiceId string `json:"service_id"`
 
-	StateCost float32 `json:"state_cost"`
+	StateCost int32 `json:"state_cost"`
 
-	PerPageStateCost float32 `json:"per_page_state_cost,omitempty"`
+	PerPageStateCost int32 `json:"per_page_state_cost,omitempty"`
 
 	ServiceAttributeValueIds []string `json:"service_attribute_value_ids"`
 }
