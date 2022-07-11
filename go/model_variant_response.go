@@ -22,4 +22,10 @@ type VariantResponse struct {
 	ServiceName string `json:"service_name,omitempty"`
 
 	PerPageStateCost int32 `json:"per_page_state_cost,omitempty"`
+
+	// The three letter iso code for the currency of the country for which this service variant applies to.
+	IsoCurrencyCode string `json:"iso_currency_code"`
+
+	// The two letter iso (alphabet, not numeric) code representing the country for which this service variant applies to.
+	IsoCountryCode string `json:"iso_country_code"`
 }

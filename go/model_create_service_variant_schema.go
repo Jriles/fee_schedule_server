@@ -13,9 +13,17 @@ type CreateServiceVariantSchema struct {
 
 	ServiceId string `json:"service_id"`
 
+	// The base state cost (in lowest possible denomination for the parent country's currency)
 	StateCost int32 `json:"state_cost"`
 
+	// The per page state cost (in lowest possible denomination for the parent country's currency)
 	PerPageStateCost int32 `json:"per_page_state_cost,omitempty"`
 
 	ServiceAttributeValueIds []string `json:"service_attribute_value_ids"`
+
+	// The three letter iso code for the currency of the country for which this service variant applies to.
+	IsoCurrencyCode string `json:"iso_currency_code"`
+
+	// The two letter iso (alphabet, not numeric) code representing the country for which this service variant applies to.
+	IsoCountryCode string `json:"iso_country_code"`
 }

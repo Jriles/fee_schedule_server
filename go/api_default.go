@@ -218,13 +218,23 @@ func CreateVariant(c *gin.Context) {
 	serviceId := requestBody.ServiceId
 	serviceAttributeValueIds := requestBody.ServiceAttributeValueIds
 	perPageStateCost := requestBody.PerPageStateCost
+	countryCode := requestBody.IsoCountryCode
+	currencyCode := requestBody.IsoCurrencyCode
 	sqlStatement := `
-	INSERT INTO service_variants (service_id, state_cost, service_attribute_value_ids, per_page_state_cost)
-	VALUES ($1, $2, $3, $4)
+	INSERT INTO service_variants (service_id, state_cost, service_attribute_value_ids, per_page_state_cost, country_code, currency_code)
+	VALUES ($1, $2, $3, $4, $5, $6)
 	RETURNING id
 	`
 	id := ""
-	err := db.QueryRow(sqlStatement, serviceId, stateCost, pq.Array(serviceAttributeValueIds), perPageStateCost).Scan(&id)
+	err := db.QueryRow(
+		sqlStatement,
+		serviceId,
+		stateCost,
+		pq.Array(serviceAttributeValueIds),
+		perPageStateCost,
+		countryCode,
+		currencyCode,
+	).Scan(&id)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
@@ -667,7 +677,15 @@ func GetVariants(c *gin.Context) {
 		for rows.Next() {
 			var variantRes VariantResponse
 			var serviceAttrValIds []string
-			err := rows.Scan(&variantRes.Id, &variantRes.ServiceId, &variantRes.StateCost, (*pq.StringArray)(&serviceAttrValIds), &variantRes.PerPageStateCost)
+			err := rows.Scan(
+				&variantRes.Id,
+				&variantRes.ServiceId,
+				&variantRes.StateCost,
+				(*pq.StringArray)(&serviceAttrValIds),
+				&variantRes.PerPageStateCost,
+				&variantRes.IsoCountryCode,
+				&variantRes.IsoCountryCode,
+			)
 			if err != nil {
 				log.Print(err)
 				c.JSON(http.StatusInternalServerError, gin.H{})

@@ -562,7 +562,9 @@ paths:
             schema:
               example:
                 per_page_state_cost: 6
+                iso_country_code: iso_country_code
                 service_id: service_id
+                iso_currency_code: iso_currency_code
                 state_cost: 0
                 service_attribute_value_ids:
                 - service_attribute_value_ids
@@ -571,14 +573,28 @@ paths:
                 service_id:
                   type: string
                 state_cost:
+                  description: The base state cost (in lowest possible denomination
+                    for the parent country's currency)
                   type: integer
                 per_page_state_cost:
+                  description: The per page state cost (in lowest possible denomination
+                    for the parent country's currency)
                   type: integer
                 service_attribute_value_ids:
                   items:
                     type: string
                   type: array
+                iso_currency_code:
+                  description: The three letter iso code for the currency of the country
+                    for which this service variant applies to.
+                  type: string
+                iso_country_code:
+                  description: The two letter iso (alphabet, not numeric) code representing
+                    the country for which this service variant applies to.
+                  type: string
               required:
+              - iso_country_code
+              - iso_currency_code
               - service_attribute_value_ids
               - service_id
               - state_cost
@@ -887,8 +903,10 @@ components:
         - service_attribute_vals
         - service_attribute_vals
         per_page_state_cost: 6
+        iso_country_code: iso_country_code
         service_name: service_name
         service_id: service_id
+        iso_currency_code: iso_currency_code
         id: id
         state_cost: 0
       properties:
@@ -906,8 +924,18 @@ components:
           type: string
         per_page_state_cost:
           type: integer
+        iso_currency_code:
+          description: The three letter iso code for the currency of the country for
+            which this service variant applies to.
+          type: string
+        iso_country_code:
+          description: The two letter iso (alphabet, not numeric) code representing
+            the country for which this service variant applies to.
+          type: string
       required:
       - id
+      - iso_country_code
+      - iso_currency_code
       - service_id
       - state_cost
       title: VariantResponse
@@ -955,7 +983,9 @@ components:
     CreateServiceVariantSchema:
       example:
         per_page_state_cost: 6
+        iso_country_code: iso_country_code
         service_id: service_id
+        iso_currency_code: iso_currency_code
         state_cost: 0
         service_attribute_value_ids:
         - service_attribute_value_ids
@@ -964,14 +994,28 @@ components:
         service_id:
           type: string
         state_cost:
+          description: The base state cost (in lowest possible denomination for the
+            parent country's currency)
           type: integer
         per_page_state_cost:
+          description: The per page state cost (in lowest possible denomination for
+            the parent country's currency)
           type: integer
         service_attribute_value_ids:
           items:
             type: string
           type: array
+        iso_currency_code:
+          description: The three letter iso code for the currency of the country for
+            which this service variant applies to.
+          type: string
+        iso_country_code:
+          description: The two letter iso (alphabet, not numeric) code representing
+            the country for which this service variant applies to.
+          type: string
       required:
+      - iso_country_code
+      - iso_currency_code
       - service_attribute_value_ids
       - service_id
       - state_cost
