@@ -531,15 +531,6 @@ paths:
         schema:
           type: integer
         style: form
-      - description: This param represents the number of pages present in the current
-          filing order. Some filings include a per page fee at the state level.
-        explode: true
-        in: query
-        name: filing_page_count
-        required: false
-        schema:
-          type: integer
-        style: form
       responses:
         "200":
           content:
@@ -561,7 +552,6 @@ paths:
           application/json:
             schema:
               example:
-                per_page_state_cost: 6
                 iso_country_code: iso_country_code
                 service_id: service_id
                 iso_currency_code: iso_currency_code
@@ -574,10 +564,6 @@ paths:
                   type: string
                 state_cost:
                   description: The base state cost (in lowest possible denomination
-                    for the parent country's currency)
-                  type: integer
-                per_page_state_cost:
-                  description: The per page state cost (in lowest possible denomination
                     for the parent country's currency)
                   type: integer
                 service_attribute_value_ids:
@@ -982,7 +968,6 @@ components:
       type: object
     CreateServiceVariantSchema:
       example:
-        per_page_state_cost: 6
         iso_country_code: iso_country_code
         service_id: service_id
         iso_currency_code: iso_currency_code
@@ -996,10 +981,6 @@ components:
         state_cost:
           description: The base state cost (in lowest possible denomination for the
             parent country's currency)
-          type: integer
-        per_page_state_cost:
-          description: The per page state cost (in lowest possible denomination for
-            the parent country's currency)
           type: integer
         service_attribute_value_ids:
           items:

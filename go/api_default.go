@@ -17,7 +17,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
 	qualdevlabs_auth_go_client "github.com/Jriles/QualDevLabsAuthGoClient"
 	"github.com/gin-gonic/gin"
@@ -217,12 +216,11 @@ func CreateVariant(c *gin.Context) {
 	stateCost := requestBody.StateCost
 	serviceId := requestBody.ServiceId
 	serviceAttributeValueIds := requestBody.ServiceAttributeValueIds
-	perPageStateCost := requestBody.PerPageStateCost
 	countryCode := requestBody.IsoCountryCode
 	currencyCode := requestBody.IsoCurrencyCode
 	sqlStatement := `
-	INSERT INTO service_variants (service_id, state_cost, service_attribute_value_ids, per_page_state_cost, country_code, currency_code)
-	VALUES ($1, $2, $3, $4, $5, $6)
+	INSERT INTO service_variants (service_id, state_cost, service_attribute_value_ids, country_code, currency_code)
+	VALUES ($1, $2, $3, $4, $5)
 	RETURNING id
 	`
 	id := ""
@@ -231,7 +229,6 @@ func CreateVariant(c *gin.Context) {
 		serviceId,
 		stateCost,
 		pq.Array(serviceAttributeValueIds),
-		perPageStateCost,
 		countryCode,
 		currencyCode,
 	).Scan(&id)
@@ -239,27 +236,6 @@ func CreateVariant(c *gin.Context) {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{})
 		return
-	}
-
-	for _, serviceAttrValId := range serviceAttributeValueIds {
-		stmt, err := db.Prepare(
-			`INSERT INTO service_variant_combination
-			(service_variant_id, service_attribute_value_id) 
-			VALUES ($1, $2)`,
-		)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-			return
-		}
-		defer stmt.Close()
-
-		_, err = stmt.Exec(id, serviceAttrValId)
-		if err != nil {
-			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-			return
-		}
 	}
 
 	successfulRes := VariantCreatedResponse{Id: id}
@@ -601,116 +577,94 @@ func GetVariants(c *gin.Context) {
 	}
 
 	var variantsResponse []VariantResponse
-	serviceAttributeValueIds := c.Request.URL.Query()["serviceAttributeValueIds[]"]
-	pageCount := c.Request.URL.Query()["filing_page_count"]
-	combinationLen := len(serviceAttributeValueIds)
-	if combinationLen > 0 {
-		//select a specific variant
-		var variantResponse VariantResponse
-		serviceAttributeValueIdsPqArr := pq.Array(serviceAttributeValueIds)
 
-		combinationErr := db.QueryRow(
-			`SELECT service_variant_id
-			FROM service_variant_combination 
-			WHERE service_attribute_value_id = ANY($1) 
-			GROUP BY service_variant_id HAVING COUNT(*) >= $2
-			`,
-			serviceAttributeValueIdsPqArr, combinationLen,
-		).Scan(
-			&variantResponse.Id,
+	// the basic problem here is that for each row we need to make a query for the attribute values
+	// then we need to select the attribute value name and return that as part of our broader query
+	// we also need to get the service name from the id
+
+	// } else {
+	// 	//SELECT ALL VARIANTS
+	// pageNumStr := c.Query("page_number")
+	// pageNum := 1
+	// if pageNumStr != "" {
+	// 	var err error
+	// 	pageNum, err = strconv.Atoi(pageNumStr)
+	// 	if err != nil {
+	// 		log.Print(err)
+	// 		c.JSON(http.StatusInternalServerError, gin.H{})
+	// 		return
+	// 	}
+	// }
+	//INNER JOIN attribute_values ON attribute_value.id = service_attribute_values.attribute_id);
+	//offset := (pageNum - 1) * variantsPerPage
+
+	// step 1: replace the service attribute value ids with attribute value ids, still in an array
+	// step 2: replate the attribute value ids with attribute value titles, also in an array
+	// step 3: done!
+	rows, err := db.Query(
+		`WITH variant_attribute_value_ids AS (
+			SELECT ARRAY_AGG(service_attribute_values.attribute_value_id) attribute_value_ids, service_variants.id variant_id FROM service_attribute_values
+			INNER JOIN service_variants ON service_attribute_values.id=ANY(service_variants.service_attribute_value_ids)
+			GROUP BY service_variants.id
 		)
-		if combinationErr != nil {
-			log.Print(combinationErr)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-			return
-		}
+		SELECT ARRAY_AGG(attribute_values.title) attribute_value_titles, variant_attribute_value_ids.variant_id FROM attribute_values
+		INNER JOIN variant_attribute_value_ids ON attribute_values.id=ANY(variant_attribute_value_ids.attribute_value_ids)
+		GROUP BY variant_attribute_value_ids.variant_id
+		`,
+	)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+	defer rows.Close()
 
-		var pageCountInt int
-		var stateCostSubtotal int32
-		var perPageStateCost int32
-		variantErr := db.QueryRow(
-			"SELECT state_cost, per_page_state_cost FROM service_variants WHERE id=$1",
-			variantResponse.Id).Scan(&stateCostSubtotal, &perPageStateCost)
-		if variantErr != nil {
-			log.Print(variantErr)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-			return
-		}
-
-		if len(pageCount) > 0 {
-			var err error
-			pageCountInt, err = strconv.Atoi(pageCount[0])
-			if err != nil {
-				log.Print(err)
-				c.JSON(http.StatusInternalServerError, gin.H{})
-				return
-			}
-		}
-
-		variantResponse.StateCost = CalculateVariantStateCost(stateCostSubtotal, perPageStateCost, int32(pageCountInt))
-		variantsResponse = append(variantsResponse, variantResponse)
-	} else {
-		//SELECT ALL VARIANTS
-		pageNumStr := c.Query("page_number")
-		pageNum := 1
-		if pageNumStr != "" {
-			var err error
-			pageNum, err = strconv.Atoi(pageNumStr)
-			if err != nil {
-				log.Print(err)
-				c.JSON(http.StatusInternalServerError, gin.H{})
-				return
-			}
-		}
-
-		offset := (pageNum - 1) * variantsPerPage
-		rows, err := db.Query(
-			`SELECT * FROM service_variants LIMIT $1 OFFSET $2
-			`, variantsPerPage, offset)
+	for rows.Next() {
+		service_attribute_value_id := ""
+		variant_id := ""
+		err := rows.Scan(&service_attribute_value_id, &variant_id)
 		if err != nil {
 			log.Print(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-			return
 		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var variantRes VariantResponse
-			var serviceAttrValIds []string
-			err := rows.Scan(
-				&variantRes.Id,
-				&variantRes.ServiceId,
-				&variantRes.StateCost,
-				(*pq.StringArray)(&serviceAttrValIds),
-				&variantRes.PerPageStateCost,
-				&variantRes.IsoCountryCode,
-				&variantRes.IsoCountryCode,
-			)
-			if err != nil {
-				log.Print(err)
-				c.JSON(http.StatusInternalServerError, gin.H{})
-				return
-			}
-
-			serviceTitleErr := db.QueryRow(
-				"SELECT title FROM services WHERE id=$1",
-				variantRes.ServiceId).Scan(&variantRes.ServiceName)
-			if serviceTitleErr != nil {
-				log.Print(err)
-				c.JSON(http.StatusInternalServerError, gin.H{})
-				return
-			}
-
-			serviceAttrVals, err := GetServiceVariantAttributeValues(db, serviceAttrValIds)
-			if err != nil {
-				log.Print(err)
-				c.JSON(http.StatusInternalServerError, gin.H{})
-				return
-			}
-			variantRes.ServiceAttributeVals = serviceAttrVals
-			variantsResponse = append(variantsResponse, variantRes)
-		}
+		log.Print(service_attribute_value_id)
+		log.Print(variant_id)
 	}
+	// 		var variantRes VariantResponse
+	// 		var serviceAttrValIds []string
+	// 		err := rows.Scan(
+	// 			&variantRes.Id,
+	// 			&variantRes.ServiceId,
+	// 			&variantRes.StateCost,
+	// 			(*pq.StringArray)(&serviceAttrValIds),
+	// 			&variantRes.PerPageStateCost,
+	// 			&variantRes.IsoCountryCode,
+	// 			&variantRes.IsoCountryCode,
+	// 		)
+	// 		if err != nil {
+	// 			log.Print(err)
+	// 			c.JSON(http.StatusInternalServerError, gin.H{})
+	// 			return
+	// 		}
+
+	// 		serviceTitleErr := db.QueryRow(
+	// 			"SELECT title FROM services WHERE id=$1",
+	// 			variantRes.ServiceId).Scan(&variantRes.ServiceName)
+	// 		if serviceTitleErr != nil {
+	// 			log.Print(err)
+	// 			c.JSON(http.StatusInternalServerError, gin.H{})
+	// 			return
+	// 		}
+
+	// 		serviceAttrVals, err := GetServiceVariantAttributeValues(db, serviceAttrValIds)
+	// 		if err != nil {
+	// 			log.Print(err)
+	// 			c.JSON(http.StatusInternalServerError, gin.H{})
+	// 			return
+	// 		}
+	// 		variantRes.ServiceAttributeVals = serviceAttrVals
+	// 		variantsResponse = append(variantsResponse, variantRes)
+	// 	}
+	// }
 
 	c.JSON(http.StatusOK, gin.H{
 		serviceVariantsArrKey: variantsResponse,
@@ -1008,6 +962,8 @@ func GetServiceVariantAttributeValues(db *sql.DB, serviceAttrValIds []string) (s
 }
 
 func GetAttributeValueTitleFromServiceAttrId(db *sql.DB, serviceAttrValId string) (attrValTitle string, err error) {
+	//this needs to be done per variant
+	//INNER JOIN?
 	sqlStatement := `
 	WITH attr_value_ids AS (
 		SELECT attribute_value_id FROM service_attribute_values WHERE id = $1
