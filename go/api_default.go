@@ -576,41 +576,62 @@ func GetVariants(c *gin.Context) {
 		return
 	}
 
+	serviceId := c.Query("service_id")
+	attributeValueIds := []string{}
 	var variantsResponse []VariantResponse
+	// step 1: filter service attribute values for the selected attribute values
+	// step 2: filter for service variants with selected attribute values/service id
+	// step 3: replace the service attribute value ids with attribute value ids, still in an array
+	// step 4: replace the attribute value ids with attribute value titles, also in an array, also replace the service id with service title.
+	// step 5: done!
 
-	// the basic problem here is that for each row we need to make a query for the attribute values
-	// then we need to select the attribute value name and return that as part of our broader query
-	// we also need to get the service name from the id
-
-	// } else {
-	// 	//SELECT ALL VARIANTS
-	// pageNumStr := c.Query("page_number")
-	// pageNum := 1
-	// if pageNumStr != "" {
-	// 	var err error
-	// 	pageNum, err = strconv.Atoi(pageNumStr)
-	// 	if err != nil {
-	// 		log.Print(err)
-	// 		c.JSON(http.StatusInternalServerError, gin.H{})
-	// 		return
-	// 	}
-	// }
-	//INNER JOIN attribute_values ON attribute_value.id = service_attribute_values.attribute_id);
-	//offset := (pageNum - 1) * variantsPerPage
-
-	// step 1: replace the service attribute value ids with attribute value ids, still in an array
-	// step 2: replate the attribute value ids with attribute value titles, also in an array
-	// step 3: done!
 	rows, err := db.Query(
-		`WITH variant_attribute_value_ids AS (
-			SELECT ARRAY_AGG(service_attribute_values.attribute_value_id) attribute_value_ids, service_variants.id variant_id FROM service_attribute_values
-			INNER JOIN service_variants ON service_attribute_values.id=ANY(service_variants.service_attribute_value_ids)
-			GROUP BY service_variants.id
+		`WITH selected_service_attribute_values AS (
+			SELECT array_agg(id) service_attribute_value_id FROM service_attribute_values WHERE 
+			CASE 
+				WHEN array_length($2::uuid[], 1) > 0 THEN attribute_value_id=ANY($2::uuid[])
+				ELSE true
+			END
+		),
+		filtered_variants AS (
+			SELECT * FROM service_variants WHERE
+			CASE
+				WHEN $1::text != '' AND array_length($2::uuid[], 1) > 0
+					THEN service_id=$1::uuid AND (service_attribute_value_ids && (SELECT service_attribute_value_id FROM selected_service_attribute_values))
+				WHEN $1::text = '' AND array_length($2::uuid[], 1) > 0
+					THEN (service_attribute_value_ids && (SELECT service_attribute_value_id FROM selected_service_attribute_values))
+				WHEN $1::text != '' AND array_length($2::uuid[], 1) = 0
+					THEN service_id=$1::uuid
+				ELSE true
+			END
+		),
+		filtered_variants_w_attribute_value_ids AS (
+			SELECT 
+				ARRAY_AGG(service_attribute_values.attribute_value_id) attribute_value_ids, 
+				filtered_variants.id,
+				filtered_variants.service_id,
+				filtered_variants.state_cost
+			FROM service_attribute_values
+			INNER JOIN filtered_variants ON service_attribute_values.id=ANY(filtered_variants.service_attribute_value_ids)
+			GROUP BY 
+				filtered_variants.id,
+				filtered_variants.service_id,
+				filtered_variants.state_cost
 		)
-		SELECT ARRAY_AGG(attribute_values.title) attribute_value_titles, variant_attribute_value_ids.variant_id FROM attribute_values
-		INNER JOIN variant_attribute_value_ids ON attribute_values.id=ANY(variant_attribute_value_ids.attribute_value_ids)
-		GROUP BY variant_attribute_value_ids.variant_id
+		SELECT 
+			filtered_variants_w_attribute_value_ids.id,
+			services.title,
+			filtered_variants_w_attribute_value_ids.state_cost,
+			ARRAY_AGG(attribute_values.title) attribute_value_titles FROM attribute_values
+		INNER JOIN filtered_variants_w_attribute_value_ids ON attribute_values.id=ANY(filtered_variants_w_attribute_value_ids.attribute_value_ids)
+		INNER JOIN services ON services.id = filtered_variants_w_attribute_value_ids.service_id
+		GROUP BY 
+			filtered_variants_w_attribute_value_ids.id,
+			services.title,
+			filtered_variants_w_attribute_value_ids.state_cost
 		`,
+		serviceId,
+		pq.StringArray(attributeValueIds),
 	)
 	if err != nil {
 		log.Print(err)
@@ -620,16 +641,19 @@ func GetVariants(c *gin.Context) {
 	defer rows.Close()
 
 	for rows.Next() {
-		service_attribute_value_id := ""
-		variant_id := ""
-		err := rows.Scan(&service_attribute_value_id, &variant_id)
+		var variantRes VariantResponse
+		err := rows.Scan(
+			&variantRes.Id,
+			&variantRes.ServiceName,
+			&variantRes.StateCost,
+			(*pq.StringArray)(&variantRes.ServiceAttributeVals),
+		)
 		if err != nil {
 			log.Print(err)
 		}
-		log.Print(service_attribute_value_id)
-		log.Print(variant_id)
+		variantsResponse = append(variantsResponse, variantRes)
 	}
-	// 		var variantRes VariantResponse
+	//
 	// 		var serviceAttrValIds []string
 	// 		err := rows.Scan(
 	// 			&variantRes.Id,
@@ -645,26 +669,6 @@ func GetVariants(c *gin.Context) {
 	// 			c.JSON(http.StatusInternalServerError, gin.H{})
 	// 			return
 	// 		}
-
-	// 		serviceTitleErr := db.QueryRow(
-	// 			"SELECT title FROM services WHERE id=$1",
-	// 			variantRes.ServiceId).Scan(&variantRes.ServiceName)
-	// 		if serviceTitleErr != nil {
-	// 			log.Print(err)
-	// 			c.JSON(http.StatusInternalServerError, gin.H{})
-	// 			return
-	// 		}
-
-	// 		serviceAttrVals, err := GetServiceVariantAttributeValues(db, serviceAttrValIds)
-	// 		if err != nil {
-	// 			log.Print(err)
-	// 			c.JSON(http.StatusInternalServerError, gin.H{})
-	// 			return
-	// 		}
-	// 		variantRes.ServiceAttributeVals = serviceAttrVals
-	// 		variantsResponse = append(variantsResponse, variantRes)
-	// 	}
-	// }
 
 	c.JSON(http.StatusOK, gin.H{
 		serviceVariantsArrKey: variantsResponse,
