@@ -13,7 +13,7 @@ To see how to make this your own, look here:
 [README](https://openapi-generator.tech)
 
 - API version: 1.0.0
-- Build date: 2022-08-02T07:47:19.246952-07:00[US/Pacific]
+- Build date: 2022-08-08T23:26:34.435955-07:00[US/Pacific]
 
 ### Running the server
 

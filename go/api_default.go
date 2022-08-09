@@ -17,6 +17,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	qualdevlabs_auth_go_client "github.com/Jriles/QualDevLabsAuthGoClient"
 	"github.com/gin-gonic/gin"
@@ -576,8 +577,12 @@ func GetVariants(c *gin.Context) {
 		return
 	}
 
-	serviceId := c.Query("service_id")
-	attributeValueIds := []string{}
+	serviceId := c.Query("serviceId")
+	attributeValueIdsStr := c.Query("attributeValueIds[]")
+	var attributeValueIds []string
+	if attributeValueIdsStr != "" {
+		attributeValueIds = strings.Split(attributeValueIdsStr, ",")
+	}
 	var variantsResponse []VariantResponse
 	// step 1: filter service attribute values for the selected attribute values
 	// step 2: filter for service variants with selected attribute values/service id

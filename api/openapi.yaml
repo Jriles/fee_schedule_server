@@ -509,16 +509,16 @@ paths:
     get:
       operationId: getVariants
       parameters:
-      - description: This param is an array of strings where the strings are the service
-          attribute value ids.
+      - description: This param is an array of strings where the strings are the attribute
+          value ids.
         explode: true
         in: query
-        name: serviceAttributeValueIds[]
+        name: attributeValueIds[]
         required: false
         schema:
           items:
             type: string
-          title: ServiceAttributeValueIds
+          title: AttributeValueIds
           type: array
         style: form
       - description: Page number of the total variant count available. The number
@@ -530,6 +530,14 @@ paths:
         required: false
         schema:
           type: integer
+        style: form
+      - description: service being filtered.
+        explode: true
+        in: query
+        name: serviceId
+        required: false
+        schema:
+          type: string
         style: form
       responses:
         "200":
