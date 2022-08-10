@@ -583,8 +583,10 @@ func GetVariants(c *gin.Context) {
 	pageNumStr := c.Query("page_number")
 
 	var attributeValueIds []string
+	var attributeValueIdsPqStrArr pq.StringArray
 	if attributeValueIdsStr != "" {
 		attributeValueIds = strings.Split(attributeValueIdsStr, ",")
+		attributeValueIdsPqStrArr = attributeValueIds
 	}
 
 	pageNum, err := strconv.Atoi(pageNumStr)
@@ -612,12 +614,12 @@ func GetVariants(c *gin.Context) {
 		filtered_variants AS (
 			SELECT * FROM service_variants WHERE
 			CASE
-				WHEN $1::text != '' AND array_length($2::uuid[], 1) > 0
+				WHEN $1::text != '' AND cardinality($2) > 0
 					THEN service_id=$1::uuid AND (service_attribute_value_ids && (SELECT service_attribute_value_id FROM selected_service_attribute_values))
-				WHEN $1::text = '' AND array_length($2::uuid[], 1) > 0
+				WHEN $1::text = '' AND cardinality($2) > 0
 					THEN (service_attribute_value_ids && (SELECT service_attribute_value_id FROM selected_service_attribute_values))
-				WHEN $1::text != '' AND array_length($2::uuid[], 1) = 0
-					THEN service_id=$1::uuid
+				WHEN $1::text != '' AND cardinality($2) IS NULL
+					THEN service_id = $1::uuid
 				ELSE true
 			END
 			LIMIT $4
@@ -649,7 +651,7 @@ func GetVariants(c *gin.Context) {
 			filtered_variants_w_attribute_value_ids.state_cost
 		`,
 		serviceId,
-		pq.StringArray(attributeValueIds),
+		attributeValueIdsPqStrArr,
 		offset,
 		variantsPerPage,
 	)
