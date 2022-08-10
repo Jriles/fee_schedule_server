@@ -17,6 +17,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	qualdevlabs_auth_go_client "github.com/Jriles/QualDevLabsAuthGoClient"
@@ -579,11 +580,21 @@ func GetVariants(c *gin.Context) {
 
 	serviceId := c.Query("serviceId")
 	attributeValueIdsStr := c.Query("attributeValueIds[]")
+	pageNumStr := c.Query("page_number")
+
 	var attributeValueIds []string
 	if attributeValueIdsStr != "" {
 		attributeValueIds = strings.Split(attributeValueIdsStr, ",")
 	}
-	var variantsResponse []VariantResponse
+
+	pageNum, err := strconv.Atoi(pageNumStr)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+	offset := (pageNum - 1) * variantsPerPage
+
 	// step 1: filter service attribute values for the selected attribute values
 	// step 2: filter for service variants with selected attribute values/service id
 	// step 3: replace the service attribute value ids with attribute value ids, still in an array
@@ -609,6 +620,8 @@ func GetVariants(c *gin.Context) {
 					THEN service_id=$1::uuid
 				ELSE true
 			END
+			LIMIT $4
+			OFFSET $3
 		),
 		filtered_variants_w_attribute_value_ids AS (
 			SELECT 
@@ -637,6 +650,8 @@ func GetVariants(c *gin.Context) {
 		`,
 		serviceId,
 		pq.StringArray(attributeValueIds),
+		offset,
+		variantsPerPage,
 	)
 	if err != nil {
 		log.Print(err)
@@ -645,6 +660,7 @@ func GetVariants(c *gin.Context) {
 	}
 	defer rows.Close()
 
+	var variantsResponse []VariantResponse
 	for rows.Next() {
 		var variantRes VariantResponse
 		err := rows.Scan(
@@ -658,22 +674,6 @@ func GetVariants(c *gin.Context) {
 		}
 		variantsResponse = append(variantsResponse, variantRes)
 	}
-	//
-	// 		var serviceAttrValIds []string
-	// 		err := rows.Scan(
-	// 			&variantRes.Id,
-	// 			&variantRes.ServiceId,
-	// 			&variantRes.StateCost,
-	// 			(*pq.StringArray)(&serviceAttrValIds),
-	// 			&variantRes.PerPageStateCost,
-	// 			&variantRes.IsoCountryCode,
-	// 			&variantRes.IsoCountryCode,
-	// 		)
-	// 		if err != nil {
-	// 			log.Print(err)
-	// 			c.JSON(http.StatusInternalServerError, gin.H{})
-	// 			return
-	// 		}
 
 	c.JSON(http.StatusOK, gin.H{
 		serviceVariantsArrKey: variantsResponse,
