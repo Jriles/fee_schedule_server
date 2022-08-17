@@ -186,7 +186,7 @@ var routes = Routes{
 		"GetVariants",
 		http.MethodGet,
 		"/service_variants/",
-		[]gin.HandlerFunc{GetVariants},
+		[]gin.HandlerFunc{AuthMiddleWare, GetVariants},
 	},
 
 	{
