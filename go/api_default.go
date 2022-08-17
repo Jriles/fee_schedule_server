@@ -26,13 +26,32 @@ import (
 )
 
 const (
-	attrValResArrKey      = "attribute_values"
-	attrResArrKey         = "attributes"
-	serviceResArrKey      = "services"
-	serviceVariantsArrKey = "service_variants"
-	serviceLinesKey       = "service_lines"
-	variantsPerPage       = 50
+	attrValResArrKey                  = "attribute_values"
+	attrResArrKey                     = "attributes"
+	serviceResArrKey                  = "services"
+	serviceVariantsArrKey             = "service_variants"
+	serviceLinesKey                   = "service_lines"
+	variantsPerPage                   = 50
+	serviceVariantsTableName          = "service_variants"
+	servicesTableName                 = "services"
+	serviceAttributeLinesTableName    = "service_attribute_lines"
+	attributeValueTableName           = "attribute_values"
+	serviceAttributeValueTableName    = "service_attribute_values"
+	uniqueVariantErrMsg               = "This service variant already exists for the provided combination of attribute values and service."
+	uniqueServiceErrMsg               = "There is already a service with that name."
+	uniqueServiceAttributeLineErrMsg  = "The line relating that attribute to this service has already been created."
+	uniqueAttributeValueErrMsg        = "There is already an attribute value with that name."
+	uniqueServiceAttributeValueErrMsg = "That attribute value has already been associated with this service."
+	resErrMsgKey                      = "errMsg"
 )
+
+var humanReadableErrorMsgs = map[string]string{
+	"service_variants23505":         uniqueVariantErrMsg,
+	"services23505":                 uniqueServiceErrMsg,
+	"service_attribute_lines23505":  uniqueServiceAttributeLineErrMsg,
+	"attribute_values23505":         uniqueAttributeValueErrMsg,
+	"service_attribute_values23505": uniqueServiceAttributeValueErrMsg,
+}
 
 type contextKey struct {
 	name string
@@ -97,9 +116,11 @@ func CreateAttributeValue(c *gin.Context) {
 	`
 	id := ""
 	queryErr := db.QueryRow(sqlStatement, title, attributeId).Scan(&id)
-	if queryErr != nil {
+	if queryErr, ok := queryErr.(*pq.Error); ok {
 		log.Print(queryErr)
-		c.JSON(http.StatusInternalServerError, gin.H{})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			resErrMsgKey: humanReadableErrorMsgs[attributeValueTableName+string(queryErr.Code)],
+		})
 		return
 	}
 
@@ -131,9 +152,11 @@ func CreateService(c *gin.Context) {
 	`
 	id := ""
 	queryErr := db.QueryRow(sqlStatement, title).Scan(&id)
-	if queryErr != nil {
+	if queryErr, ok := queryErr.(*pq.Error); ok {
 		log.Print(queryErr)
-		c.JSON(http.StatusInternalServerError, gin.H{})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			resErrMsgKey: humanReadableErrorMsgs[servicesTableName+string(queryErr.Code)],
+		})
 		return
 	}
 
@@ -166,9 +189,11 @@ func CreateServiceAttributeValue(c *gin.Context) {
 	`
 	id := ""
 	queryErr := db.QueryRow(sqlStatement, lineId, attributeValueId).Scan(&id)
-	if queryErr != nil {
+	if queryErr, ok := queryErr.(*pq.Error); ok {
 		log.Print(queryErr)
-		c.JSON(http.StatusInternalServerError, gin.H{})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			resErrMsgKey: humanReadableErrorMsgs[serviceAttributeValueTableName+string(queryErr.Code)],
+		})
 		return
 	}
 
@@ -192,9 +217,11 @@ func CreateServiceAttributeLine(c *gin.Context) {
 	`
 	id := ""
 	err := db.QueryRow(sqlStatement, serviceId, attributeId).Scan(&id)
-	if err != nil {
+	if err, ok := err.(*pq.Error); ok {
 		log.Print(err)
-		c.JSON(http.StatusInternalServerError, gin.H{})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			resErrMsgKey: humanReadableErrorMsgs[serviceAttributeLinesTableName+string(err.Code)],
+		})
 		return
 	}
 	successfulRes := AttributeResponse{Id: id}
@@ -234,9 +261,11 @@ func CreateVariant(c *gin.Context) {
 		countryCode,
 		currencyCode,
 	).Scan(&id)
-	if err != nil {
+	if err, ok := err.(*pq.Error); ok {
 		log.Print(err)
-		c.JSON(http.StatusInternalServerError, gin.H{})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			resErrMsgKey: humanReadableErrorMsgs[serviceVariantsTableName+string(err.Code)],
+		})
 		return
 	}
 
