@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  # db:
+  #   image: postgres:13.4-alpine
+  #   environment:
+  #     POSTGRES_PASSWORD: password
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_DB: fee_schedule
+  #   volumes:
+  #     - db-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   command: >
+  #     bash -c "psql -U postgres -d fee_schedule -a -f /app/Fee-Schedule-API-DB-Schemas/schema.sql"
+  
+  # server:
+  #   build:
+  #     context: ./fee_schedule_server
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - db
+
+  frontend:
+    image: jriley9000/fee_schedule_react_tsx
+    volumes:
+      - ./frontend:/fee_schedule_react_tsx
+    environment:
+      - REACT_APP_API_URL=http://fee-schedule-server:8080
+    ports:
+      - "3000:3000"
+    # depends_on:
+    #   - server
+
+volumes:
+  db-data:
